@@ -1,7 +1,6 @@
 package com.example.mdpapp;
 
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +10,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.mdpapp.databinding.BluetoothConnectionFragmentBinding;
 
@@ -22,15 +22,13 @@ public class BluetoothConnectionFragment extends Fragment {
 
     private BluetoothConnectionFragmentBinding binding;
     private List<BluetoothDevice> deviceList = new ArrayList<>();
-    private BluetoothSocket bluetoothSocket;
     private BluetoothConnectionManager bluetoothConnectionManager;
     private BluetoothConnectionManager.BluetoothSocketCallback connectionCallback = new BluetoothConnectionManager.BluetoothSocketCallback() {
         @Override
         public void onConnected() {
             requireActivity().runOnUiThread(() -> {
-                binding.txtConnectionStatus.setText("Connected!");
-
                 ((MainActivity) requireActivity()).getBluetoothViewModel().setBluetoothConnectionManager(bluetoothConnectionManager);
+                NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
             });
         }
 
