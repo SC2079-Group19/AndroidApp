@@ -20,14 +20,14 @@ public class HomeFragment extends Fragment {
 
     private HomeFragmentBinding binding;
 
-    private BluetoothSocket bluetoothSocket;
+    private BluetoothConnectionManager bluetoothConnectionManager;
 
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        bluetoothSocket = ((MainActivity) requireActivity()).getBluetoothViewModel().getBluetoothSocket();
+        bluetoothConnectionManager = ((MainActivity) requireActivity()).getBluetoothViewModel().getBluetoothConnectionManager();
 
         binding = HomeFragmentBinding.inflate(inflater, container, false);
         return binding.getRoot();
@@ -36,13 +36,13 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.swConnectedTo.setText("Device: " + bluetoothSocket.getRemoteDevice().getName());
+        binding.swConnectedTo.setText("Device: " + bluetoothConnectionManager.getConnectedDevice().getName());
 
         binding.swConnectedTo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try {
-                    bluetoothSocket.close();
+                    bluetoothConnectionManager.disconnect();
                 }
                 catch (IOException e) {
                     Log.e("BluetoothSocket", e.getMessage());

@@ -3,23 +3,20 @@ package com.example.mdpapp;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.bluetooth.BluetoothDevice;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.mdpapp.databinding.BluetoothConnectionFragmentBinding;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public class BluetoothConnectionFragment extends Fragment {
 
@@ -27,6 +24,23 @@ public class BluetoothConnectionFragment extends Fragment {
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private BluetoothSocket bluetoothSocket;
     private BluetoothConnectionManager bluetoothConnectionManager;
+    private BluetoothConnectionManager.BluetoothSocketCallback connectionCallback = new BluetoothConnectionManager.BluetoothSocketCallback() {
+        @Override
+        public void onConnected() {
+            requireActivity().runOnUiThread(() -> {
+                binding.txtConnectionStatus.setText("Connected!");
+
+                ((MainActivity) requireActivity()).getBluetoothViewModel().setBluetoothConnectionManager(bluetoothConnectionManager);
+            });
+        }
+
+        @Override
+        public void onConnectionFailed() {
+            requireActivity().runOnUiThread(() -> {
+                binding.txtConnectionStatus.setText("Failed to connect. Try Again!");
+            });
+        }
+    };
 
     @Override
     public View onCreateView(
@@ -40,47 +54,38 @@ public class BluetoothConnectionFragment extends Fragment {
         return binding.getRoot();
     }
 
+
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        binding.btnScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Set<BluetoothDevice> pairedDevices = bluetoothConnectionManager.getPairedDevices();
+
+                ArrayList<String> deviceNames = new ArrayList<>();
+                if (!pairedDevices.isEmpty()) {
+                    for (BluetoothDevice device : pairedDevices) {
+                        String deviceName = device.getName();
+                        deviceNames.add(deviceName);
+                        deviceList.add(device);
+                    }
+
+                    String[] deviceNamesStr = deviceNames.toArray(new String[0]);
+                    showDeviceSelectionDialog(deviceNamesStr);
+                } else {
+                    Toast.makeText(requireContext(), "No Paired devices found.", Toast.LENGTH_LONG);
+                }
+            }
+        });
+    }
+
     private void showDeviceSelectionDialog(String[] devices) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Select a Device").setItems(devices, (dialog, which) -> {
-                    // Perform actions with the selected device, like connecting
                     BluetoothDevice selectedDevice = deviceList.get(which);
-
-                    try {
-                        // Get a BluetoothSocket for a connection with the given device
-                        UUID uuid = selectedDevice.getUuids()[0].getUuid();
-                        bluetoothSocket = selectedDevice.createRfcommSocketToServiceRecord(uuid);
-
-                        binding.textView2.setText("Connecting to... " + selectedDevice.getName());
-
-                        // Connect the socket in a separate thread to avoid blocking the UI
-                        Thread connectThread = new Thread(() -> {
-                            try {
-                                bluetoothSocket.connect();
-                                getActivity().runOnUiThread(() -> {
-                                    binding.textView2.setText("Connected!");
-
-                                    // Passing the socket to the ViewModel
-                                    ((MainActivity) requireActivity()).getBluetoothViewModel().setBluetoothSocket(bluetoothSocket);
-
-                                    NavHostFragment.findNavController(BluetoothConnectionFragment.this)
-                                            .navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
-                                });
-
-                            } catch (IOException e) {
-                                Log.e("BluetoothConnection", e.getMessage());
-                                e.printStackTrace();
-                                getActivity().runOnUiThread(() -> {
-                                    binding.textView2.setText("Failed to connect to " + selectedDevice.getName() + ". Try Again!");
-                                });
-                            }
-                        });
-                        connectThread.start();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        // Handle socket creation failure
-                        // ...
-                    }
+                    bluetoothConnectionManager.connect(selectedDevice, connectionCallback);
+                    binding.txtConnectionStatus.setText("Connecting to " + selectedDevice.getName());
                 })
                 .setNegativeButton("Cancel", null);
 
@@ -88,33 +93,10 @@ public class BluetoothConnectionFragment extends Fragment {
         dialog.show();
     }
 
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Set<BluetoothDevice> pairedDevices = bluetoothConnectionManager.getPairedDevices();
-
-                ArrayList<String> deviceNames = new ArrayList<>();
-                if (pairedDevices.size() > 0) {
-                    for (BluetoothDevice device : pairedDevices) {
-                        String deviceName = device.getName();
-                        deviceNames.add(deviceName);
-                        deviceList.add(device);
-                    }
-
-                    String[] deviceNamesStr = new String[deviceNames.size()];
-                    deviceNamesStr = (String[]) deviceNames.toArray(new String[0]);
-                    showDeviceSelectionDialog(deviceNamesStr);
-                }
-            }
-            });
-        }
-            @Override
-            public void onDestroyView() {
-                super.onDestroyView();
-                binding = null;
-            }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
+}
 

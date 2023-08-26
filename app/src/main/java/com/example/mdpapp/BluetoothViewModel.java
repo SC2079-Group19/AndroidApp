@@ -1,17 +1,15 @@
 package com.example.mdpapp;
 
-import android.bluetooth.BluetoothSocket;
-
 import androidx.lifecycle.ViewModel;
 
 public class BluetoothViewModel extends ViewModel {
-    private BluetoothSocket bluetoothSocket;
+    private BluetoothConnectionManager bluetoothConnectionManager;
 
-    public BluetoothSocket getBluetoothSocket() {
-        return this.bluetoothSocket;
+    public BluetoothConnectionManager getBluetoothConnectionManager() {
+        return this.bluetoothConnectionManager;
     }
 
-    public void setBluetoothSocket(BluetoothSocket bluetoothSocket) {
-        this.bluetoothSocket = bluetoothSocket;
+    public void setBluetoothConnectionManager(BluetoothConnectionManager bluetoothConnectionManager) {
+        this.bluetoothConnectionManager = bluetoothConnectionManager;
     }
 }
