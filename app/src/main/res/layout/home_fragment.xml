@@ -13,54 +13,25 @@
             android:layout_height="wrap_content"
             android:checked="true"
             android:text="Device"
+            android:textSize="10pt"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.943"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <RelativeLayout
-            android:layout_width="179dp"
-            android:layout_height="175dp"
+        <com.codertainment.dpadview.DPadView
+            android:id="@+id/dpad"
+            android:layout_width="145dp"
+            android:layout_height="147dp"
+            android:src="@drawable/ic_gamepad_black"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-                <ImageButton
-                    android:id="@+id/btnUp"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true"
-                    android:src="@drawable/ic_arrow_up" />
-
-                <ImageButton
-                    android:id="@+id/btnLeft"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_centerVertical="true"
-                    android:layout_toLeftOf="@id/btnUp"
-                    android:src="@drawable/ic_arrow_left" />
-
-                <ImageButton
-                    android:id="@+id/btnRight"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_centerVertical="true"
-                    android:layout_toRightOf="@id/btnUp"
-                    android:src="@drawable/ic_arrow_right" />
-
-                <ImageButton
-                    android:id="@+id/btnDown"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_alignParentBottom="true"
-                    android:layout_centerHorizontal="true"
-                    android:src="@drawable/ic_arrow_down" />
-        </RelativeLayout>
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
             android:text="Under Construction ..."
             android:textSize="14pt"
             app:layout_constraintBottom_toBottomOf="parent"
