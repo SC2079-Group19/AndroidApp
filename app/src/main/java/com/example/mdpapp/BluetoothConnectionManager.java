@@ -2,7 +2,6 @@ package com.example.mdpapp;
 
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -15,6 +14,7 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,6 +103,28 @@ public class BluetoothConnectionManager {
         }
     }
 
+    public void startReceivingMessages(BluetoothMessageCallback callback) throws IOException {
+        if (bluetoothSocket == null || !bluetoothSocket.isConnected()) {
+            return;
+        }
+
+        Thread receiveThread = new Thread(() -> {
+            try {
+                InputStream inputStream = bluetoothSocket.getInputStream();
+                byte[] buffer = new byte[1024];
+
+                int bytesRead;
+
+                while((bytesRead = inputStream.read(buffer)) != -1) {
+                    String receivedMessage = new String(buffer, 0, bytesRead);
+                    callback.onMessageReceived(receivedMessage);
+                }
+            } catch (IOException e) {
+                Log.e("BluetoothConnection", e.getMessage());
+            }
+        });
+    }
+
     public BluetoothDevice getConnectedDevice() {
         if (bluetoothSocket == null || !bluetoothSocket.isConnected()) {
             return null;
@@ -116,5 +138,9 @@ public class BluetoothConnectionManager {
         void onConnected();
 
         void onConnectionFailed();
+    }
+
+    public interface BluetoothMessageCallback {
+        void onMessageReceived(String message);
     }
 }
