@@ -7,19 +7,17 @@
     android:padding="20dp"
     tools:context=".HomeFragment">
 
-        <Switch
-            android:id="@+id/swConnectedTo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="Device"
-            android:textSize="10pt"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.943"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <Switch
+        android:id="@+id/swConnectedTo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="Device"
+        android:textSize="10pt"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <com.codertainment.dpadview.DPadView
+    <com.codertainment.dpadview.DPadView
             android:id="@+id/dpad"
             android:layout_width="145dp"
             android:layout_height="147dp"
@@ -38,6 +36,5 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
