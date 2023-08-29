@@ -2,6 +2,7 @@ package com.example.mdpapp;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -12,7 +13,6 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
-import androidx.navigation.fragment.NavHostFragment;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,26 +22,22 @@ import java.util.UUID;
 
 public class BluetoothConnectionManager {
 
+    private String[] permissions = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_ADVERTISE, Manifest.permission.BLUETOOTH_CONNECT};
     private Context context;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothSocket bluetoothSocket;
-    private static final int PERMISSION_REQUEST_BLUETOOTH = 1;
-    private static final int REQUEST_ENABLE_BT = 2;
+    public static final int PERMISSION_REQUEST_BLUETOOTH = 1;
+    public static final int REQUEST_ENABLE_BT = 2;
 
     public BluetoothConnectionManager(Context context) {
         this.context = context;
     }
 
     public void requestUserPermissions() {
+        // checking if the version of Android is >= 6.0
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            String[] permissions = {Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT};
+            List<String> permissionsToRequest = checkUserPermissions();
 
-            List<String> permissionsToRequest = new ArrayList<>();
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    permissionsToRequest.add(permission);
-                }
-            }
             if (!permissionsToRequest.isEmpty()) {
                 ActivityCompat.requestPermissions((MainActivity) context, permissionsToRequest.toArray(new String[1]), PERMISSION_REQUEST_BLUETOOTH);
             }
@@ -51,6 +47,17 @@ public class BluetoothConnectionManager {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             ((MainActivity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
+    }
+
+    public List<String> checkUserPermissions() {
+        List <String> notGranted = new ArrayList<>();
+        for(String permission: permissions) {
+            if(ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                notGranted.add(permission);
+            }
+        }
+
+        return notGranted;
     }
 
     public Set<BluetoothDevice> getPairedDevices() {

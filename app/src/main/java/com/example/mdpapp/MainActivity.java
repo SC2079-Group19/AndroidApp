@@ -1,8 +1,13 @@
 package com.example.mdpapp;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.lifecycle.ViewModelProvider;
@@ -13,16 +18,16 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.mdpapp.databinding.ActivityMainBinding;
 
+import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private AppBarConfiguration appBarConfiguration;
     private BluetoothViewModel bluetoothViewModel;
-    private static final int REQUEST_ENABLE_BT = 2;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +75,61 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_ENABLE_BT && resultCode != RESULT_OK) {
+        if (requestCode == BluetoothConnectionManager.REQUEST_ENABLE_BT && resultCode != RESULT_OK) {
             // TODO: Tell user app is useless without bluetooth
             finish();
         }
+    }
+
+    private void showPermissionsNotGrantedDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Permissions Not Granted")
+                .setMessage("Please go to the settings to grant the necessary permissions. The app will not function properly otherwise.")
+                .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Left blank otherwise the dialog closes once the user goes into the settings
+                    }
+                })
+                .setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setCancelable(false);
+        AlertDialog dialog = builder.create();
+
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == BluetoothConnectionManager.PERMISSION_REQUEST_BLUETOOTH) {
+            boolean allPermissionsGranted = true;
+
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                    break;
+                }
+            }
+
+            if (!allPermissionsGranted) {
+                showPermissionsNotGrantedDialog();
+            }
+        }
+
     }
 }
