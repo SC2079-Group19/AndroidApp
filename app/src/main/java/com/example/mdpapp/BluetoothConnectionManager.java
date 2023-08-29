@@ -15,6 +15,7 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -50,9 +51,9 @@ public class BluetoothConnectionManager {
     }
 
     public List<String> checkUserPermissions() {
-        List <String> notGranted = new ArrayList<>();
-        for(String permission: permissions) {
-            if(ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+        List<String> notGranted = new ArrayList<>();
+        for (String permission : permissions) {
+            if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
                 notGranted.add(permission);
             }
         }
@@ -63,7 +64,6 @@ public class BluetoothConnectionManager {
     public Set<BluetoothDevice> getPairedDevices() {
         return bluetoothAdapter.getBondedDevices();
     }
-
 
     public void connect(BluetoothDevice device, BluetoothSocketCallback callback) {
         Thread connectThread = new Thread(() -> {
@@ -89,7 +89,25 @@ public class BluetoothConnectionManager {
         }
     }
 
+    public void sendMessage(String messageToSend) throws IOException {
+        if (bluetoothSocket == null || !bluetoothSocket.isConnected()) {
+            return;
+        }
+
+        try {
+            OutputStream outputStream = bluetoothSocket.getOutputStream();
+            outputStream.write(messageToSend.getBytes());
+            outputStream.flush();
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
     public BluetoothDevice getConnectedDevice() {
+        if (bluetoothSocket == null || !bluetoothSocket.isConnected()) {
+            return null;
+        }
+
         return bluetoothSocket.getRemoteDevice();
     }
 
