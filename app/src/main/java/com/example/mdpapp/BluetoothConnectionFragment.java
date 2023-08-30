@@ -29,6 +29,7 @@ public class BluetoothConnectionFragment extends Fragment {
     private BluetoothConnectionFragmentBinding binding;
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private BluetoothConnectionManager bluetoothConnectionManager;
+    private BluetoothPermissionManager bluetoothPermissionManager;
     private BluetoothConnectionManager.BluetoothSocketCallback connectionCallback = new BluetoothConnectionManager.BluetoothSocketCallback() {
         @Override
         public void onConnected() {
@@ -51,8 +52,10 @@ public class BluetoothConnectionFragment extends Fragment {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        bluetoothConnectionManager = new BluetoothConnectionManager(requireContext());
-        bluetoothConnectionManager.requestUserPermissions();
+        bluetoothConnectionManager = new BluetoothConnectionManager();
+
+        bluetoothPermissionManager = new BluetoothPermissionManager(requireActivity());
+        bluetoothPermissionManager.requestUserPermissions();
 
         binding = BluetoothConnectionFragmentBinding.inflate(inflater, container, false);
         return binding.getRoot();

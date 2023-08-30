@@ -50,6 +50,39 @@ public class HomeFragment extends Fragment {
                 NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.action_HomeFragment_to_BluetoothConnectionFragment);
             }
         });
+
+        binding.btnSendDemo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+
+                    bluetoothConnectionManager.sendMessage("f");
+                } catch (IOException e) {
+                    Log.e("BluetoothConnection", e.getMessage());
+                }
+            }
+        });
+
+        binding.btnReceiveDemo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    bluetoothConnectionManager.startReceivingMessages(new BluetoothConnectionManager.BluetoothMessageCallback() {
+                        @Override
+                        public void onMessageReceived(String message) {
+                            Log.d("BluetoothMessage", message);
+                            requireActivity().runOnUiThread(() -> {
+                                binding.textView.setText(message);
+                            });
+                        }
+                    });
+                } catch (IOException e) {
+                    Log.e("BluetoothConnection", e.getMessage());
+                }
+            }
+        });
+
+
     }
 
     @Override

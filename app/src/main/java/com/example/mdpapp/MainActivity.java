@@ -19,8 +19,6 @@ import androidx.navigation.ui.NavigationUI;
 import com.example.mdpapp.databinding.ActivityMainBinding;
 
 import android.provider.Settings;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == BluetoothConnectionManager.REQUEST_ENABLE_BT && resultCode != RESULT_OK) {
+        if (requestCode == BluetoothPermissionManager.REQUEST_ENABLE_BT && resultCode != RESULT_OK) {
             // TODO: Tell user app is useless without bluetooth
             finish();
         }
@@ -94,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == BluetoothConnectionManager.PERMISSION_REQUEST_BLUETOOTH) {
+        if (requestCode == BluetoothPermissionManager.PERMISSION_REQUEST_BLUETOOTH) {
             boolean allPermissionsGranted = true;
 
             for (int result : grantResults) {
