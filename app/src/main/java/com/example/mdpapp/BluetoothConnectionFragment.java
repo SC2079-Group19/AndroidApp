@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,6 +23,9 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.mdpapp.databinding.BluetoothConnectionFragmentBinding;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,7 +63,15 @@ public class BluetoothConnectionFragment extends Fragment {
                     });
                     break;
                 case BluetoothConnectionManager.RECEIVED_MESSAGE:
-                    //
+                    try {
+                        JSONObject message = JSONMessagesManager.stringToMessageJSON(msg.getData().toString());
+                        JSONMessagesManager.MessageHeader messageType = (JSONMessagesManager.MessageHeader) message.get("header");
+                        String messageContent = (String) message.get("data");
+                        ((MainActivity) requireActivity()).getMessageViewModel().setMessage(messageType, messageContent);
+                    } catch (JSONException e) {
+                        Log.e("Message", e.getMessage());
+                    }
+
             }
 
         }
@@ -92,7 +104,7 @@ public class BluetoothConnectionFragment extends Fragment {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        bluetoothConnectionManager = new BluetoothConnectionManager(requireActivity());
+        bluetoothConnectionManager = new BluetoothConnectionManager();
 
         bluetoothPermissionManager = new BluetoothPermissionManager(requireActivity());
         bluetoothPermissionManager.requestUserPermissions();
@@ -132,7 +144,11 @@ public class BluetoothConnectionFragment extends Fragment {
                 deviceList.clear();
                 deviceListNames.clear();
                 deviceAdapter.notifyDataSetChanged();
-                bluetoothConnectionManager.startScanning(receiver);
+
+                bluetoothConnectionManager.startScanning();
+                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                requireActivity().registerReceiver(receiver, filter);
+
                 Set<BluetoothDevice> pairedDevices = bluetoothConnectionManager.getPairedDevices();
                 if (!pairedDevices.isEmpty()) {
                     for (BluetoothDevice device : pairedDevices) {

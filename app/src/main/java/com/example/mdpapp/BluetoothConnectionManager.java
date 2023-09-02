@@ -4,9 +4,6 @@ package com.example.mdpapp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.IntentFilter;
 import android.os.Handler;
 import android.util.Log;
 
@@ -26,7 +23,6 @@ public class BluetoothConnectionManager {
     public static final int RECEIVED_MESSAGE = 1;
     public static final int CONNECTION_LOST = 2;
 
-    private Context context;
     private BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothSocket mSocket;
     private ConnectedThread mConnectedThread;
@@ -35,10 +31,6 @@ public class BluetoothConnectionManager {
     private BluetoothDevice lastConnectedDevice;
     private boolean isIntentionalDisconnect = false;
 
-    public BluetoothConnectionManager(Context context) {
-        this.context = context;
-    }
-
     public Set<BluetoothDevice> getPairedDevices() {
         if(mAdapter == null) {
             return null;
@@ -46,15 +38,12 @@ public class BluetoothConnectionManager {
         return mAdapter.getBondedDevices();
     }
 
-    public void startScanning(BroadcastReceiver receiver) {
+    public void startScanning() {
         if (mAdapter == null || mAdapter.isDiscovering()) {
             return;
         }
 
         mAdapter.startDiscovery();
-
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        ((MainActivity) context).registerReceiver(receiver, filter);
     }
 
     public void stopScanning() {

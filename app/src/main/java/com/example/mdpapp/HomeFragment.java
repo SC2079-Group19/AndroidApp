@@ -12,7 +12,11 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.codertainment.dpadview.DPadView;
 import com.example.mdpapp.databinding.HomeFragmentBinding;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -36,6 +40,16 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        MessageViewModel messageViewModel = ((MainActivity) requireActivity()).getMessageViewModel();
+
+        messageViewModel.getMessageType().observe(getViewLifecycleOwner(), messageHeader -> {
+            switch (messageHeader) {
+                case ROBOT_STATUS:
+                    binding.txtStatus.setText(messageViewModel.getMessageContent().getValue());
+                    break;
+            }
+        });
+
         binding.swConnectedTo.setText("Device: " + bluetoothConnectionManager.getConnectedDevice().getName());
 
         binding.swConnectedTo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -51,15 +65,46 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        binding.btnSendHi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try{
-                    bluetoothConnectionManager.sendMessage("Hi");
-                } catch (IOException e) {
-                    Log.e("BluetoothConnection", e.getMessage());
-                }
+        binding.dpad.setOnDirectionClickListener(direction -> {
+            switch (direction) {
+                case UP:
+                    try {
+                        JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "FW");
+                        bluetoothConnectionManager.sendMessage(message.toString());
+                    } catch (IOException e) {
+                        Log.e("HomeFragment", e.getMessage());
+                        e.printStackTrace();
+                    }
+                    break;
+                case DOWN:
+                    try {
+                        JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "BW");
+                        bluetoothConnectionManager.sendMessage(message.toString());
+                    } catch (IOException e) {
+                        Log.e("HomeFragment", e.getMessage());
+                        e.printStackTrace();
+                    }
+                    break;
+                case LEFT:
+                    try {
+                        JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "FL");
+                        bluetoothConnectionManager.sendMessage(message.toString());
+                    } catch (IOException e) {
+                        Log.e("HomeFragment", e.getMessage());
+                        e.printStackTrace();
+                    }
+                    break;
+                case RIGHT:
+                    try {
+                        JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "FR");
+                        bluetoothConnectionManager.sendMessage(message.toString());
+                    } catch (IOException e) {
+                        Log.e("HomeFragment", e.getMessage());
+                        e.printStackTrace();
+                    }
+                    break;
             }
+            return null;
         });
     }
 

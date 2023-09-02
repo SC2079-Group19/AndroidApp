@@ -26,12 +26,14 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private AppBarConfiguration appBarConfiguration;
     private BluetoothViewModel bluetoothViewModel;
+    private MessageViewModel messageViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         bluetoothViewModel = new ViewModelProvider(this).get(BluetoothViewModel.class);
+        messageViewModel = new ViewModelProvider(this).get(MessageViewModel.class);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -46,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
 
     public BluetoothViewModel getBluetoothViewModel() {
         return this.bluetoothViewModel;
+    }
+
+    public MessageViewModel getMessageViewModel() {
+        return this.messageViewModel;
     }
 
     @Override
