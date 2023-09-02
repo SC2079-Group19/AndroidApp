@@ -51,6 +51,16 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        binding.btnSendHi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    bluetoothConnectionManager.sendMessage("Hi");
+                } catch (IOException e) {
+                    Log.e("BluetoothConnection", e.getMessage());
+                }
+            }
+        });
     }
 
     @Override

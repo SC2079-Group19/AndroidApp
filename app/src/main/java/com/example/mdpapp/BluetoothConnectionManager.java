@@ -7,58 +7,81 @@ import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Set;
 import java.util.UUID;
 
 
 public class BluetoothConnectionManager {
+    private static final String TAG = "BluetoothConnectionManager";
 
-    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    private BluetoothSocket bluetoothSocket;
+    public static final int CONNECTION_FAILED = -1;
+    public static final int CONNECTION_SUCCESSFUL = 0;
+    public static final int RECEIVED_MESSAGE = 1;
+    public static final int CONNECTION_LOST = 2;
+
     private Context context;
-    private BroadcastReceiver receiver;
+    private BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
+    private BluetoothSocket mSocket;
+    private ConnectedThread mConnectedThread;
+    private Handler mConnectionCallback;
     private final static UUID RANDOM_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private BluetoothDevice lastConnectedDevice;
+    private boolean isIntentionalDisconnect = false;
 
     public BluetoothConnectionManager(Context context) {
         this.context = context;
     }
 
     public Set<BluetoothDevice> getPairedDevices() {
-        return bluetoothAdapter.getBondedDevices();
+        if(mAdapter == null) {
+            return null;
+        }
+        return mAdapter.getBondedDevices();
     }
 
     public void startScanning(BroadcastReceiver receiver) {
-        if(bluetoothAdapter.isDiscovering()) {
+        if (mAdapter == null || mAdapter.isDiscovering()) {
             return;
         }
 
-        bluetoothAdapter.startDiscovery();
+        mAdapter.startDiscovery();
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         ((MainActivity) context).registerReceiver(receiver, filter);
     }
 
     public void stopScanning() {
-        if(bluetoothAdapter.isDiscovering()) {
-            bluetoothAdapter.cancelDiscovery();
+        if (mAdapter != null && mAdapter.isDiscovering()) {
+            mAdapter.cancelDiscovery();
         }
     }
 
-    public void connect(BluetoothDevice device, BluetoothSocketCallback callback) {
+    public void connect(BluetoothDevice device, Handler callback) {
+        isIntentionalDisconnect = false;
+        mConnectionCallback = callback;
+
         Thread connectThread = new Thread(() -> {
             try {
-                bluetoothSocket = device.createRfcommSocketToServiceRecord(RANDOM_UUID);
-                bluetoothSocket.connect();
+                mSocket = device.createRfcommSocketToServiceRecord(RANDOM_UUID);
+                mSocket.connect();
 
-                callback.onConnected();
+                mConnectedThread = new ConnectedThread(mSocket);
+                mConnectedThread.start();
+
+                lastConnectedDevice = device;
+
+                mConnectionCallback.obtainMessage(CONNECTION_SUCCESSFUL).sendToTarget();
+
             } catch (IOException e) {
-                Log.e("BluetoothConnection", e.getMessage());
-                callback.onConnectionFailed();
+                Log.e(TAG, e.getMessage());
+                mConnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
             }
         });
         connectThread.start();
@@ -66,66 +89,108 @@ public class BluetoothConnectionManager {
 
     public void disconnect() throws IOException {
         try {
-            bluetoothSocket.close();
+            isIntentionalDisconnect = true;
+            mConnectedThread.cancel();
+            mSocket.close();
         } catch (IOException e) {
             throw e;
         }
+    }
+
+    public void reconnect(Handler reconnectionCallback) {
+        if(lastConnectedDevice == null) {
+            reconnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
+        }
+        Thread reconnectThread = new Thread(() -> {
+           try {
+               mSocket = lastConnectedDevice.createRfcommSocketToServiceRecord(RANDOM_UUID);
+               mSocket.connect();
+
+               mConnectedThread = new ConnectedThread(mSocket);
+               mConnectedThread.start();
+
+               reconnectionCallback.obtainMessage(CONNECTION_SUCCESSFUL).sendToTarget();
+           } catch(IOException e) {
+               Log.e(TAG, e.getMessage());
+               reconnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
+           }
+        });
+
+        reconnectThread.start();
     }
 
     public void sendMessage(String messageToSend) throws IOException {
-        if (bluetoothSocket == null || !bluetoothSocket.isConnected()) {
-            return;
-        }
-
-        try {
-            OutputStream outputStream = bluetoothSocket.getOutputStream();
-            outputStream.write(messageToSend.getBytes());
-            outputStream.flush();
-        } catch (IOException e) {
-            throw e;
-        }
-    }
-
-    public void startReceivingMessages(BluetoothMessageCallback callback) throws IOException {
-        if (bluetoothSocket == null || !bluetoothSocket.isConnected()) {
-            return;
-        }
-
-        Thread receiveThread = new Thread(() -> {
-            try {
-                InputStream inputStream = bluetoothSocket.getInputStream();
-                byte[] buffer = new byte[1024];
-
-                int bytesRead;
-
-                while((bytesRead = inputStream.read(buffer)) != -1) {
-                    String receivedMessage = new String(buffer, 0, bytesRead);
-                    callback.onMessageReceived(receivedMessage);
-                }
-            } catch (IOException e) {
-                Log.e("BluetoothConnection", e.getMessage());
-            }
-        });
-
-        receiveThread.start();
+        mConnectedThread.write(messageToSend.getBytes());
     }
 
     public BluetoothDevice getConnectedDevice() {
-        if (bluetoothSocket == null || !bluetoothSocket.isConnected()) {
+        if (mSocket == null || !mSocket.isConnected()) {
             return null;
         }
 
-        return bluetoothSocket.getRemoteDevice();
+        return mSocket.getRemoteDevice();
+    }
+
+    public class ConnectedThread extends Thread {
+        private final BluetoothSocket mmSocket;
+        private final InputStream mmInStream;
+        private final OutputStream mmOutStream;
+        private final Handler mmHandler;
+
+        public ConnectedThread(BluetoothSocket socket) {
+            mmSocket = socket;
+            mmHandler = mConnectionCallback;
+
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            try {
+                tmpIn = mmSocket.getInputStream();
+                tmpOut = mmSocket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
+        }
+
+        @Override
+        public void run() {
+            byte[] buffer = new byte[1024];
+
+            int bytes;
+
+            while (true) {
+                try {
+                    bytes = mmInStream.read(buffer);
+                    String incomingMessage = new String(buffer, 0, bytes);
+                    mmHandler.obtainMessage(RECEIVED_MESSAGE, incomingMessage).sendToTarget();
+                } catch (IOException e) {
+                    if (!isIntentionalDisconnect) {
+                        mmHandler.obtainMessage(CONNECTION_LOST).sendToTarget();
+                    }
+                    break;
+                }
+            }
+        }
+
+        public void write(byte[] bytes) {
+            String text = new String(bytes, Charset.defaultCharset());
+            Log.d(TAG, "write: Writing to outputstream: " + text);
+            try {
+                mmOutStream.write(bytes);
+            } catch (IOException e) {
+                Log.e(TAG, "write: Error writing to output stream. " + e.getMessage() );
+            }
+        }
+
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) { }
+        }
     }
 
 
-    public interface BluetoothSocketCallback {
-        void onConnected();
-
-        void onConnectionFailed();
-    }
-
-    public interface BluetoothMessageCallback {
-        void onMessageReceived(String message);
-    }
 }

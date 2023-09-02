@@ -1,14 +1,14 @@
 package com.example.mdpapp;
 
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,12 +18,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.mdpapp.databinding.BluetoothConnectionFragmentBinding;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,20 +36,54 @@ public class BluetoothConnectionFragment extends Fragment {
     private BluetoothConnectionManager bluetoothConnectionManager;
     private ArrayAdapter<String> deviceAdapter;
     private BluetoothPermissionManager bluetoothPermissionManager;
-    private BluetoothConnectionManager.BluetoothSocketCallback connectionCallback = new BluetoothConnectionManager.BluetoothSocketCallback() {
+    private AlertDialog reconnectionDialog;
+    private Handler btConnectionHandler = new Handler(Looper.getMainLooper()) {
         @Override
-        public void onConnected() {
-            requireActivity().runOnUiThread(() -> {
-                ((MainActivity) requireActivity()).getBluetoothViewModel().setBluetoothConnectionManager(bluetoothConnectionManager);
-                NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
-            });
-        }
+        public void handleMessage(@NonNull Message msg) {
+            switch (msg.what) {
+                case BluetoothConnectionManager.CONNECTION_SUCCESSFUL:
+                    requireActivity().runOnUiThread(() -> {
+                        ((MainActivity) requireActivity()).getBluetoothViewModel().setBluetoothConnectionManager(bluetoothConnectionManager);
+                        NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
+                    });
+                    break;
+                case BluetoothConnectionManager.CONNECTION_FAILED:
+                    requireActivity().runOnUiThread(() -> {
+                        binding.txtConnectionStatus.setText("Failed to connect. Try Again!");
+                    });
+                    break;
+                case BluetoothConnectionManager.CONNECTION_LOST:
+                    requireActivity().runOnUiThread(() -> {
+                        showConnectionLostDialog();
+                        bluetoothConnectionManager.reconnect(btReconnectionHandler);
+                    });
+                    break;
+                case BluetoothConnectionManager.RECEIVED_MESSAGE:
+                    //
+            }
 
+        }
+    };
+
+    private Handler btReconnectionHandler = new Handler(Looper.getMainLooper()) {
         @Override
-        public void onConnectionFailed() {
+        public void handleMessage(@NonNull Message msg) {
             requireActivity().runOnUiThread(() -> {
-                binding.txtConnectionStatus.setText("Failed to connect. Try Again!");
+                dismissReconnectionDialog();
             });
+            switch (msg.what) {
+                case BluetoothConnectionManager.CONNECTION_SUCCESSFUL:
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireActivity(), "Back Online", Toast.LENGTH_LONG).show();
+                    });
+                    break;
+                case BluetoothConnectionManager.CONNECTION_FAILED:
+                    requireActivity().runOnUiThread(() -> {
+                        NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_HomeFragment_to_BluetoothConnectionFragment);
+                        Toast.makeText(requireActivity(), "Connection Failed!", Toast.LENGTH_LONG).show();
+                    });
+                    break;
+            }
         }
     };
 
@@ -72,6 +106,7 @@ public class BluetoothConnectionFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         deviceAdapter = new ArrayAdapter<String>(requireActivity(), android.R.layout.simple_list_item_1, deviceListNames);
+
 
         final BroadcastReceiver receiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
@@ -116,9 +151,10 @@ public class BluetoothConnectionFragment extends Fragment {
     private void showDeviceSelectionDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Select a Device").setAdapter(deviceAdapter, (dialog, which) -> {
+                    bluetoothConnectionManager.stopScanning();
                     BluetoothDevice selectedDevice = deviceList.get(which);
                     Log.d("BluetoothCon", selectedDevice.getName());
-                    bluetoothConnectionManager.connect(selectedDevice, connectionCallback);
+                    bluetoothConnectionManager.connect(selectedDevice, btConnectionHandler);
                     binding.txtConnectionStatus.setText("Connecting to " + selectedDevice.getName());
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -126,10 +162,37 @@ public class BluetoothConnectionFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         bluetoothConnectionManager.stopScanning();
                     }
-                });
+                })
+                .setCancelable(false);
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void showConnectionLostDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Reconnecting...")
+                .setMessage("The connection with the Bluetooth Device has been disrupted. A reconnection attempt is being made.")
+                .setNegativeButton("Disconnect", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            bluetoothConnectionManager.disconnect();
+                        } catch (IOException e) {
+                            Log.e("BluetoothConnection", e.getMessage());
+                        }
+                    }
+                })
+                .setCancelable(false);
+
+        reconnectionDialog = builder.create();
+        reconnectionDialog.show();
+    }
+
+    private void dismissReconnectionDialog() {
+        if(reconnectionDialog != null && reconnectionDialog.isShowing()) {
+            reconnectionDialog.dismiss();
+        }
     }
 
     @Override
