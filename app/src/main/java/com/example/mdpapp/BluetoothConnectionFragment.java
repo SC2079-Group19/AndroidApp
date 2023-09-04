@@ -64,14 +64,15 @@ public class BluetoothConnectionFragment extends Fragment {
                     break;
                 case BluetoothConnectionManager.RECEIVED_MESSAGE:
                     try {
-                        JSONObject message = JSONMessagesManager.stringToMessageJSON(msg.getData().toString());
-                        JSONMessagesManager.MessageHeader messageType = (JSONMessagesManager.MessageHeader) message.get("header");
+                        String messageStr = (String) msg.obj;
+                        Log.d("Bluetooth", messageStr);
+                        JSONObject message = JSONMessagesManager.stringToMessageJSON(messageStr);
+                        JSONMessagesManager.MessageHeader messageType = JSONMessagesManager.MessageHeader.valueOf((String) message.get("header"));
                         String messageContent = (String) message.get("data");
                         ((MainActivity) requireActivity()).getMessageViewModel().setMessage(messageType, messageContent);
                     } catch (JSONException e) {
                         Log.e("Message", e.getMessage());
                     }
-
             }
 
         }
