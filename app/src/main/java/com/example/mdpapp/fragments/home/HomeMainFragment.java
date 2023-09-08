@@ -66,12 +66,16 @@ public class HomeMainFragment extends Fragment {
                 gridCell.setLayoutParams(params);
 
                 if (row == gridSize && col == 0) {
+                    // zero label at bottom left
                     gridCell.setText("0");
                 } else if (row == gridSize) {
+                    // x-axis at the bottom
                     gridCell.setText(String.valueOf(col));
                 } else if (col == 0) {
+                    // y-axis at the left
                     gridCell.setText(String.valueOf(gridSize - row));
                 } else {
+                    // normal cell
                     gridCell.setBackgroundColor(cellColor);
                 }
 
