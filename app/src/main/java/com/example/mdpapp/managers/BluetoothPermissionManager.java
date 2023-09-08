@@ -1,4 +1,4 @@
-package com.example.mdpapp;
+package com.example.mdpapp.managers;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -8,6 +8,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 
 import androidx.core.app.ActivityCompat;
+
+import com.example.mdpapp.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;

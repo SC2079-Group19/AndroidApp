@@ -1,4 +1,4 @@
-package com.example.mdpapp;
+package com.example.mdpapp.fragments;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -22,6 +22,11 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.mdpapp.MainActivity;
+import com.example.mdpapp.R;
+import com.example.mdpapp.managers.BluetoothConnectionManager;
+import com.example.mdpapp.managers.BluetoothPermissionManager;
+import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.BluetoothConnectionFragmentBinding;
 
 import org.json.JSONException;
@@ -33,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 
 public class BluetoothConnectionFragment extends Fragment {
-
     private BluetoothConnectionFragmentBinding binding;
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private List<String> deviceListNames = new ArrayList<>();

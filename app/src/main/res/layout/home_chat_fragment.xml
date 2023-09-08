@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="@dimen/tab_top_padding"
-    tools:context=".HomeChatFragment">
+    tools:context=".fragments.home.HomeChatFragment">
 
         <TextView
             android:id="@+id/txtReceivedHeader"

@@ -1,8 +1,10 @@
-package com.example.mdpapp;
+package com.example.mdpapp.view_models;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
+import com.example.mdpapp.utils.JSONMessagesManager;
 
 public class MessageViewModel extends ViewModel {
     private MutableLiveData<JSONMessagesManager.MessageHeader> messageType = new MutableLiveData<>();

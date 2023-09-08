@@ -1,4 +1,4 @@
-package com.example.mdpapp;
+package com.example.mdpapp.fragments.home;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;

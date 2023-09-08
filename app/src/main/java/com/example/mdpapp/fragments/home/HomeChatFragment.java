@@ -1,4 +1,4 @@
-package com.example.mdpapp;
+package com.example.mdpapp.fragments.home;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.mdpapp.MainActivity;
+import com.example.mdpapp.view_models.MessageViewModel;
+import com.example.mdpapp.managers.BluetoothConnectionManager;
+import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.HomeChatFragmentBinding;
 
 import org.json.JSONObject;

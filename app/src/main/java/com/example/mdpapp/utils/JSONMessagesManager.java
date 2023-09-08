@@ -1,4 +1,4 @@
-package com.example.mdpapp;
+package com.example.mdpapp.utils;
 
 import android.util.Log;
 
