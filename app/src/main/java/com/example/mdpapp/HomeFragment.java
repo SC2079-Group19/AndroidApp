@@ -50,7 +50,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        if(bluetoothConnectionManager.getConnectedDevice().getName() != null) {
+        if(bluetoothConnectionManager.getConnectedDevice() != null) {
             binding.swConnectedTo.setText("Device: " + bluetoothConnectionManager.getConnectedDevice().getName());
         } else {
             NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.action_HomeFragment_to_BluetoothConnectionFragment);
