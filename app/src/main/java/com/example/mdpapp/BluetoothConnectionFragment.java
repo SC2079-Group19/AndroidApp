@@ -47,7 +47,6 @@ public class BluetoothConnectionFragment extends Fragment {
             switch (msg.what) {
                 case BluetoothConnectionManager.CONNECTION_SUCCESSFUL:
                     requireActivity().runOnUiThread(() -> {
-                        ((MainActivity) requireActivity()).getBluetoothViewModel().setBluetoothConnectionManager(bluetoothConnectionManager);
                         NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
                     });
                     break;
@@ -105,7 +104,7 @@ public class BluetoothConnectionFragment extends Fragment {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        bluetoothConnectionManager = new BluetoothConnectionManager();
+        bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
 
         bluetoothPermissionManager = new BluetoothPermissionManager(requireActivity());
         bluetoothPermissionManager.requestUserPermissions();

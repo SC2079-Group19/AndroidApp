@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/tab_top_padding"
+    tools:context=".HomeMainFragment">
+
+    <GridLayout
+        android:id="@+id/grid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteY="20dp" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginLeft="80dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" >
+
+        <TextView
+            android:id="@+id/obstacle"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:background="?colorOnSurface"
+            android:textColor="?colorOnPrimary"
+            android:gravity="center"
+            android:text="1" />
+
+        <ImageView
+            android:id="@+id/robot"
+            android:src="@mipmap/robot_car"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="20dp" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+    <com.codertainment.dpadview.DPadView
+        android:id="@+id/dpad"
+        android:layout_width="145dp"
+        android:layout_height="147dp"
+        android:src="@drawable/ic_gamepad_black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

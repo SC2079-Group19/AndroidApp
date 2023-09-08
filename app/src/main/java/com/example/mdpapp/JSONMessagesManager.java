@@ -11,7 +11,8 @@ public class JSONMessagesManager {
         ROBOT_CONTROL,
         ROBOT_STATUS,
         ITEM_LOCATION,
-        ROBOT_LOCATION
+        ROBOT_LOCATION,
+        MISC
     }
 
     public static JSONObject createJSONMessage(MessageHeader messageType, String message) {

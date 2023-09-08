@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/tab_top_padding"
+    tools:context=".HomeChatFragment">
+
+        <TextView
+            android:id="@+id/txtReceivedHeader"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:background="@drawable/rounded_corner"
+            android:gravity="center"
+            android:hint="Header"
+            android:textSize="10pt"
+            app:layout_constraintBottom_toTopOf="@+id/txtReceivedMsg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/txtReceivedMsg"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:background="@drawable/rounded_corner"
+            android:gravity="center"
+            android:hint="Message"
+            android:textSize="10pt"
+            app:layout_constraintBottom_toTopOf="@+id/editTextSend"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtReceivedHeader" />
+
+        <EditText
+            android:id="@+id/editTextSend"
+            android:layout_width="wrap_content"
+            android:layout_height="145dp"
+            android:ems="10"
+            android:hint="Send a message"
+            android:inputType="text"
+            app:layout_constraintBottom_toTopOf="@id/radioBtnGrpMsgHeader"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtReceivedMsg" />
+
+
+        <RadioGroup
+            android:id="@+id/radioBtnGrpMsgHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@+id/editTextSend"
+            app:layout_constraintEnd_toEndOf="@id/editTextSend"
+            app:layout_constraintStart_toStartOf="@id/editTextSend">
+            <RadioButton
+                android:id="@+id/radioBtnRobotLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MISC" />
+
+            <RadioButton
+                android:id="@+id/ratdioBtnItemLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ITEM_LOCATION" />
+            <RadioButton
+                android:id="@+id/ratdioBtnRobotControl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ROBOT_CONTROL" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/btnSendMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send"
+            app:layout_constraintTop_toTopOf="@+id/editTextSend"
+            app:layout_constraintBottom_toBottomOf="@+id/editTextSend"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/editTextSend" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

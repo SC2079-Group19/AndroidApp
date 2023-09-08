@@ -25,14 +25,12 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private AppBarConfiguration appBarConfiguration;
-    private BluetoothViewModel bluetoothViewModel;
     private MessageViewModel messageViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        bluetoothViewModel = new ViewModelProvider(this).get(BluetoothViewModel.class);
         messageViewModel = new ViewModelProvider(this).get(MessageViewModel.class);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -44,10 +42,6 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
-    }
-
-    public BluetoothViewModel getBluetoothViewModel() {
-        return this.bluetoothViewModel;
     }
 
     public MessageViewModel getMessageViewModel() {

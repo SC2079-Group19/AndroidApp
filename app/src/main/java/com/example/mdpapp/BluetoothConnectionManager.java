@@ -16,6 +16,7 @@ import java.util.UUID;
 
 
 public class BluetoothConnectionManager {
+    private static BluetoothConnectionManager INSTANCE;
     private static final String TAG = "BluetoothConnectionManager";
 
     public static final int CONNECTION_FAILED = -1;
@@ -31,8 +32,20 @@ public class BluetoothConnectionManager {
     private BluetoothDevice lastConnectedDevice;
     private boolean isIntentionalDisconnect = false;
 
+    private BluetoothConnectionManager() {
+
+    }
+
+    public static BluetoothConnectionManager getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new BluetoothConnectionManager();
+        }
+
+        return INSTANCE;
+    }
+
     public Set<BluetoothDevice> getPairedDevices() {
-        if(mAdapter == null) {
+        if (mAdapter == null) {
             return null;
         }
         return mAdapter.getBondedDevices();
@@ -87,22 +100,22 @@ public class BluetoothConnectionManager {
     }
 
     public void reconnect(Handler reconnectionCallback) {
-        if(lastConnectedDevice == null) {
+        if (lastConnectedDevice == null) {
             reconnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
         }
         Thread reconnectThread = new Thread(() -> {
-           try {
-               mSocket = lastConnectedDevice.createRfcommSocketToServiceRecord(RANDOM_UUID);
-               mSocket.connect();
+            try {
+                mSocket = lastConnectedDevice.createRfcommSocketToServiceRecord(RANDOM_UUID);
+                mSocket.connect();
 
-               mConnectedThread = new ConnectedThread(mSocket);
-               mConnectedThread.start();
+                mConnectedThread = new ConnectedThread(mSocket);
+                mConnectedThread.start();
 
-               reconnectionCallback.obtainMessage(CONNECTION_SUCCESSFUL).sendToTarget();
-           } catch(IOException e) {
-               Log.e(TAG, e.getMessage());
-               reconnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
-           }
+                reconnectionCallback.obtainMessage(CONNECTION_SUCCESSFUL).sendToTarget();
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+                reconnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
+            }
         });
 
         reconnectThread.start();
@@ -170,14 +183,15 @@ public class BluetoothConnectionManager {
             try {
                 mmOutStream.write(bytes);
             } catch (IOException e) {
-                Log.e(TAG, "write: Error writing to output stream. " + e.getMessage() );
+                Log.e(TAG, "write: Error writing to output stream. " + e.getMessage());
             }
         }
 
         public void cancel() {
             try {
                 mmSocket.close();
-            } catch (IOException e) { }
+            } catch (IOException e) {
+            }
         }
     }
 
