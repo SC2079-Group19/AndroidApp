@@ -1,4 +1,4 @@
-package com.example.mdpapp.managers;
+package com.example.mdpapp.utils.bluetooth;
 
 
 import android.bluetooth.BluetoothAdapter;

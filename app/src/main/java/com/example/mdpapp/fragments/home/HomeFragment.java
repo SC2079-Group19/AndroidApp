@@ -14,7 +14,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.example.mdpapp.MainActivity;
 import com.example.mdpapp.view_models.MessageViewModel;
 import com.example.mdpapp.R;
-import com.example.mdpapp.managers.BluetoothConnectionManager;
+import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.databinding.HomeFragmentBinding;
 import com.google.android.material.tabs.TabLayout;
 

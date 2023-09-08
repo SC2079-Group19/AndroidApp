@@ -24,8 +24,8 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.mdpapp.MainActivity;
 import com.example.mdpapp.R;
-import com.example.mdpapp.managers.BluetoothConnectionManager;
-import com.example.mdpapp.managers.BluetoothPermissionManager;
+import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
+import com.example.mdpapp.utils.bluetooth.BluetoothPermissionManager;
 import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.BluetoothConnectionFragmentBinding;
 

@@ -16,7 +16,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.example.mdpapp.managers.BluetoothPermissionManager;
+import com.example.mdpapp.utils.bluetooth.BluetoothPermissionManager;
 import com.example.mdpapp.databinding.ActivityMainBinding;
 import com.example.mdpapp.view_models.MessageViewModel;
 
