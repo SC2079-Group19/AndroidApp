@@ -8,7 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.view.DragEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -82,7 +84,6 @@ public class HomeMainFragment extends Fragment {
                 gridLayout.addView(gridCell);
             }
 
-
             binding.dpad.setOnDirectionClickListener(direction -> {
                 switch (direction) {
                     case UP:
@@ -125,5 +126,72 @@ public class HomeMainFragment extends Fragment {
                 return null;
             });
         }
+
+        // Add the drag-and-drop functionality for the robot image
+        ImageView robotImageView = binding.robot;
+        robotImageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // Start the drag operation when the robot image is long-clicked
+                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
+                v.startDragAndDrop(null, shadowBuilder, v, 0);
+                return true;
+            }
+        });
+
+        // Add the drag-and-drop functionality for the obstacle
+        TextView obstacleTextView = binding.obstacle;
+        obstacleTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // Start the drag operation when the obstacle is long-clicked
+                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
+                v.startDragAndDrop(null, shadowBuilder, v, 0);
+                return true;
+            }
+        });
+
+        // Set the drag listener for the grid layout
+        gridLayout.setOnDragListener(new View.OnDragListener() {
+            @Override
+            public boolean onDrag(View v, DragEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case DragEvent.ACTION_DROP:
+                        View draggedView = (View) event.getLocalState();
+
+                        // Calculate the drop location in grid coordinates
+                        float x = event.getX();
+                        float y = event.getY();
+
+                        int gridX = (int) (x / (cellSize + cellSpacing));
+                        int gridY = (int) (y / (cellSize + cellSpacing));
+
+                        // Ensure the drop location is within the grid bounds
+                        if (gridX >= 0 && gridX < gridSize && gridY >= 0 && gridY < gridSize) {
+                            // Calculate the position for the dropped view within the grid cell
+                            int left = gridX * (cellSize + cellSpacing);
+                            int top = gridY * (cellSize + cellSpacing);
+
+                            // Set layout parameters for the dropped view to snap into the grid cell
+                            draggedView.setLayoutParams(new GridLayout.LayoutParams(
+                                    new ViewGroup.LayoutParams(cellSize, cellSize)
+                            ));
+
+                            // Update the position of the dropped view within the grid cell
+                            gridLayout.addView(draggedView, gridX + gridY * gridSize);
+                        }
+
+                        return true;
+
+                    case DragEvent.ACTION_DRAG_ENDED:
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+        });
+
     }
 }
