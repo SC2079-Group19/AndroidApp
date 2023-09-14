@@ -7,6 +7,8 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -121,7 +123,7 @@ public class BluetoothConnectionManager {
         reconnectThread.start();
     }
 
-    public void sendMessage(String messageToSend) throws IOException {
+    public void sendMessage(@NonNull String messageToSend) throws IOException {
         mConnectedThread.write(messageToSend.getBytes());
     }
 

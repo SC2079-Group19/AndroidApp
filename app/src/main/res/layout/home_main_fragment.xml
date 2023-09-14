@@ -7,17 +7,25 @@
     android:paddingTop="@dimen/tab_top_padding"
     tools:context=".fragments.home.HomeMainFragment">
 
-    <GridLayout
-        android:id="@+id/grid"
-        android:layout_width="match_parent"
+    <FrameLayout
+        android:id="@+id/frame"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:padding="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteY="20dp" />
+        tools:layout_editor_absoluteY="20dp">
+        <GridLayout
+            android:id="@+id/grid"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+    </FrameLayout>
 
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/llObstacleCar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -25,15 +33,15 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" >
 
-        <TextView
-            android:id="@+id/obstacle"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_margin="20dp"
-            android:background="?colorOnSurface"
-            android:textColor="?colorOnPrimary"
-            android:gravity="center"
-            android:text="1" />
+<!--        <TextView-->
+<!--            android:id="@+id/obstacle"-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:layout_margin="20dp"-->
+<!--            android:background="?colorOnSurface"-->
+<!--            android:textColor="?colorOnPrimary"-->
+<!--            android:gravity="center"-->
+<!--            android:text="1" />-->
 
         <ImageView
             android:id="@+id/robot"
