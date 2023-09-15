@@ -24,33 +24,23 @@
             android:layout_centerInParent="true" />
     </FrameLayout>
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <GridLayout
         android:id="@+id/llObstacleCar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:orientation="horizontal"
         android:layout_marginLeft="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" >
 
-<!--        <TextView-->
-<!--            android:id="@+id/obstacle"-->
-<!--            android:layout_width="50dp"-->
-<!--            android:layout_height="50dp"-->
-<!--            android:layout_margin="20dp"-->
-<!--            android:background="?colorOnSurface"-->
-<!--            android:textColor="?colorOnPrimary"-->
-<!--            android:gravity="center"-->
-<!--            android:text="1" />-->
-
         <ImageView
             android:id="@+id/robot"
             android:src="@mipmap/robot_car"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="5dp"
+            android:layout_height="5dp"
             android:layout_margin="20dp" />
 
-    </androidx.appcompat.widget.LinearLayoutCompat>
+    </GridLayout>
 
 
     <com.codertainment.dpadview.DPadView

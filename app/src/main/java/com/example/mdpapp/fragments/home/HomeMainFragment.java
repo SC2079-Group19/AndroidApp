@@ -93,9 +93,13 @@ public class HomeMainFragment extends Fragment {
             }
         }
 
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.width = cellSize*3;
+        params.height = cellSize*3;
+        binding.robot.setLayoutParams(params);
+
         // Add the drag-and-drop functionality for the robot image
-        ImageView robotImageView = binding.robot;
-        robotImageView.setOnLongClickListener(new View.OnLongClickListener() {
+        binding.robot.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 // Start the drag operation when the robot image is long-clicked
@@ -160,32 +164,51 @@ public class HomeMainFragment extends Fragment {
                         int left = (int) cell.getX();
                         int top = (int) cell.getY();
 
-                        TextView obstacle = (TextView) event.getLocalState();
+                        View item = (View) event.getLocalState();
+                        if (item.getId() == binding.robot.getId()) {
+                            ImageView robot = (ImageView) item;
+                            FrameLayout.LayoutParams params = null;
+                            if(!(robot.getParent() instanceof FrameLayout)) {
+                                params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                                binding.llObstacleCar.removeView(robot);
+                                binding.frame.addView(robot);
+                            } else {
+                                params = (FrameLayout.LayoutParams) robot.getLayoutParams();
+                            }
+                            params.leftMargin = left - (cellSize + cellSpacing);
+                            params.topMargin = top - (cellSize + cellSpacing);
+                            params.width = cellSize*3;
+                            params.height = cellSize*3;
+                            binding.robot.setLayoutParams(params);
 
-                        // Check if the view is not already added to the FrameLayout
-                        FrameLayout.LayoutParams layoutParams = null;
-                        if (!(obstacle.getParent() instanceof FrameLayout)) {
-                            // Add the view to the FrameLayout
-                            layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                            binding.llObstacleCar.removeView(obstacle);
-                            TextView newObstacle = createNewObstacle(Integer.valueOf(obstacle.getText().toString()) + 1);
-                            binding.llObstacleCar.addView(newObstacle, 0);
-                            binding.frame.addView(obstacle);
                         } else {
-                            // Move the view to the new position within the FrameLayout
-                            layoutParams = (FrameLayout.LayoutParams) obstacle.getLayoutParams();
-                        }
+                            TextView obstacle = (TextView) item;
 
-                        layoutParams.leftMargin = left;
-                        layoutParams.topMargin = top;
-                        layoutParams.width = cellSize;
-                        layoutParams.height = cellSize;
-                        obstacle.setLayoutParams(layoutParams);
+                            // Check if the view is not already added to the FrameLayout
+                            FrameLayout.LayoutParams layoutParams = null;
+                            if (!(obstacle.getParent() instanceof FrameLayout)) {
+                                // Add the view to the FrameLayout
+                                layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                                binding.llObstacleCar.removeView(obstacle);
+                                TextView newObstacle = createNewObstacle(Integer.valueOf(obstacle.getText().toString()) + 1);
+                                binding.llObstacleCar.addView(newObstacle, 0);
+                                binding.frame.addView(obstacle);
+                            } else {
+                                // Move the view to the new position within the FrameLayout
+                                layoutParams = (FrameLayout.LayoutParams) obstacle.getLayoutParams();
+                            }
 
-                        JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, obstacle.getText()+", "+(gridX-1)+", "+((gridSize+1)-gridY));
-                        try {
-                            bluetoothConnectionManager.sendMessage(message.toString());
-                        } catch (IOException e) {
+                            layoutParams.leftMargin = left;
+                            layoutParams.topMargin = top;
+                            layoutParams.width = cellSize;
+                            layoutParams.height = cellSize;
+                            obstacle.setLayoutParams(layoutParams);
+
+                            JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, obstacle.getText()+", "+(gridX-1)+", "+((gridSize+1)-gridY));
+                            try {
+                                bluetoothConnectionManager.sendMessage(message.toString());
+                            } catch (IOException e) {
+                            }
                         }
 
                         return true;
@@ -231,17 +254,33 @@ public class HomeMainFragment extends Fragment {
                         return true;
 
                     case DragEvent.ACTION_DROP:
-                        TextView obstacle = (TextView) event.getLocalState();
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(obstacle.getLayoutParams());
-                        params.height = 50;
-                        params.width = 50;
-                        obstacle.setLayoutParams(params);
-                        if (obstacle.getParent() instanceof FrameLayout) {
-                            binding.frame.removeView(obstacle);
-                            currentHighestObstacle--;
+                        View item = (View) event.getLocalState();
+                        if (item.getId() == binding.robot.getId()) {
+                            ImageView robot = (ImageView) item;
+                            // TODO: clean
+                            if (robot.getParent() instanceof FrameLayout) {
+                                binding.frame.removeView(robot);
+                            } else {
+                                binding.llObstacleCar.removeView(robot);
+                            }
+                            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                            params.height = cellSize*3;
+                            params.width = cellSize*3;
+                            robot.setLayoutParams(params);
+                            binding.llObstacleCar.addView(robot);
+                        } else {
+                            TextView obstacle = (TextView) item;
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(obstacle.getLayoutParams());
+                            params.height = 50;
+                            params.width = 50;
+                            obstacle.setLayoutParams(params);
+                            if (obstacle.getParent() instanceof FrameLayout) {
+                                binding.frame.removeView(obstacle);
+                                currentHighestObstacle--;
+                            }
+                            binding.llObstacleCar.removeViewAt(0);
+                            binding.llObstacleCar.addView(obstacle, 0);
                         }
-                        binding.llObstacleCar.removeViewAt(0);
-                        binding.llObstacleCar.addView(obstacle, 0);
                         return true;
 
                     default:
