@@ -98,6 +98,12 @@ public class HomeMainFragment extends Fragment {
         params.height = cellSize*3;
         binding.robot.setLayoutParams(params);
 
+        binding.robot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.robot.setRotation((binding.robot.getRotation() + 90) % 360);
+            }
+        });
         // Add the drag-and-drop functionality for the robot image
         binding.robot.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
