@@ -26,12 +26,18 @@
 
     <GridLayout
         android:id="@+id/llObstacleCar"
-        android:layout_width="120dp"
-        android:layout_height="100dp"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
         android:orientation="horizontal"
         android:layout_marginLeft="80dp"
+        android:background="?colorPrimaryContainer"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" >
+
+        <FrameLayout
+            android:id="@+id/obstacleStack" />
 
         <ImageView
             android:id="@+id/robot"
