@@ -3,9 +3,11 @@ package com.example.mdpapp.fragments.home;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.FrameMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +31,7 @@ import com.example.mdpapp.databinding.HomeMainFragmentBinding;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HomeMainFragment extends Fragment {
@@ -36,6 +39,8 @@ public class HomeMainFragment extends Fragment {
     private HomeMainFragmentBinding binding;
     private BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
     private int currentHighestObstacle = 0;
+    private static final int MAX_NO_OBSTACLES = 10;
+    private static ArrayList<TextView> obstacles = new ArrayList<>();
 
     @Nullable
     @Override
@@ -93,6 +98,70 @@ public class HomeMainFragment extends Fragment {
             }
         }
 
+        for(int i = 0; i < MAX_NO_OBSTACLES; i++) {
+            TextView newObstacle = new TextView(requireActivity());
+
+            newObstacle.setText(String.valueOf(i+1));
+            newObstacle.setId(i+1);
+            newObstacle.setBackgroundColor(Color.BLACK);
+            newObstacle.setTextColor(Color.WHITE);
+            newObstacle.setGravity(Gravity.CENTER);
+
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+            layoutParams.topMargin = 0;
+            layoutParams.leftMargin = 0;
+            layoutParams.width = 80;
+            layoutParams.height = 80;
+
+            newObstacle.setLayoutParams(layoutParams);
+
+            newObstacle.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    // Start the drag operation when the obstacle is long-clicked
+                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
+                    v.startDragAndDrop(null, shadowBuilder, v, 0);
+                    return true;
+                }
+            });
+
+            newObstacle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String[] options = new String[]{"Top", "Bottom", "Left", "Right"};
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+                    builder.setTitle("Select Image Location")
+                            .setItems(options, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String selection = options[which];
+                                    switch (selection) {
+                                        case "Top":
+                                            v.setBackgroundResource(R.drawable.obstacle_border_top);
+                                            break;
+                                        case "Bottom":
+                                            v.setBackgroundResource(R.drawable.obstacle_border_bottom);
+                                            break;
+                                        case "Left":
+                                            v.setBackgroundResource(R.drawable.obstacle_border_left);
+                                            break;
+                                        case "Right":
+                                            v.setBackgroundResource(R.drawable.obstacle_border_right);
+                                            break;
+                                    }
+                                }
+                            })
+                            .setCancelable(false);
+
+                    builder.show();
+                }
+            });
+
+            obstacles.add(newObstacle);
+            binding.obstacleStack.addView(newObstacle, 0);
+        }
+
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
         params.width = cellSize*3;
         params.height = cellSize*3;
@@ -114,10 +183,6 @@ public class HomeMainFragment extends Fragment {
                 return true;
             }
         });
-
-        // Add the drag-and-drop functionality for the obstacle
-        TextView obstacle = createNewObstacle(1);
-        binding.llObstacleCar.addView(obstacle, 0);
 
         requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorSecondary, typedValue, true);
         int axisHighlightBgColor = typedValue.data;
@@ -174,7 +239,7 @@ public class HomeMainFragment extends Fragment {
                         if (item.getId() == binding.robot.getId()) {
                             ImageView robot = (ImageView) item;
                             FrameLayout.LayoutParams params = null;
-                            if(!(robot.getParent() instanceof FrameLayout)) {
+                            if(((View) robot.getParent()).getId() == binding.llObstacleCar.getId()) {
                                 params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                                 binding.llObstacleCar.removeView(robot);
                                 binding.frame.addView(robot);
@@ -191,19 +256,12 @@ public class HomeMainFragment extends Fragment {
                             TextView obstacle = (TextView) item;
 
                             // Check if the view is not already added to the FrameLayout
-                            FrameLayout.LayoutParams layoutParams = null;
-                            if (!(obstacle.getParent() instanceof FrameLayout)) {
+                            if (((View)obstacle.getParent()).getId() == binding.obstacleStack.getId()) {
                                 // Add the view to the FrameLayout
-                                layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                                binding.llObstacleCar.removeView(obstacle);
-                                TextView newObstacle = createNewObstacle(Integer.valueOf(obstacle.getText().toString()) + 1);
-                                binding.llObstacleCar.addView(newObstacle, 0);
+                                binding.obstacleStack.removeView(obstacle);
                                 binding.frame.addView(obstacle);
-                            } else {
-                                // Move the view to the new position within the FrameLayout
-                                layoutParams = (FrameLayout.LayoutParams) obstacle.getLayoutParams();
                             }
-
+                            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) obstacle.getLayoutParams();
                             layoutParams.leftMargin = left;
                             layoutParams.topMargin = top;
                             layoutParams.width = cellSize;
@@ -263,8 +321,7 @@ public class HomeMainFragment extends Fragment {
                         View item = (View) event.getLocalState();
                         if (item.getId() == binding.robot.getId()) {
                             ImageView robot = (ImageView) item;
-                            // TODO: clean
-                            if (robot.getParent() instanceof FrameLayout) {
+                            if (((View) robot.getParent()).getId() == binding.frame.getId()) {
                                 binding.frame.removeView(robot);
                             } else {
                                 binding.llObstacleCar.removeView(robot);
@@ -276,16 +333,16 @@ public class HomeMainFragment extends Fragment {
                             binding.llObstacleCar.addView(robot);
                         } else {
                             TextView obstacle = (TextView) item;
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(obstacle.getLayoutParams());
-                            params.height = 50;
-                            params.width = 50;
+                            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(obstacle.getLayoutParams());
+                            params.height = 80;
+                            params.width = 80;
+                            params.topMargin = 0;
+                            params.leftMargin = 0;
                             obstacle.setLayoutParams(params);
-                            if (obstacle.getParent() instanceof FrameLayout) {
+                            if (((View) obstacle.getParent()).getId() == binding.frame.getId()) {
                                 binding.frame.removeView(obstacle);
-                                currentHighestObstacle--;
                             }
-                            binding.llObstacleCar.removeViewAt(0);
-                            binding.llObstacleCar.addView(obstacle, 0);
+                            binding.obstacleStack.addView(obstacle);
                         }
                         return true;
 
@@ -344,62 +401,5 @@ public class HomeMainFragment extends Fragment {
 
         axisX.setTextColor(fgColor);
         axisY.setTextColor(fgColor);
-    }
-
-    private TextView createNewObstacle(int obstacleNumber) {
-        TextView newObstacle = new TextView(requireActivity());
-
-        newObstacle.setText(String.valueOf(currentHighestObstacle+1));
-        newObstacle.setId(currentHighestObstacle+1);
-        currentHighestObstacle++;
-        newObstacle.setWidth(50);
-        newObstacle.setHeight(50);
-        newObstacle.setBackgroundColor(Color.BLACK);
-        newObstacle.setTextColor(Color.WHITE);
-        newObstacle.setGravity(Gravity.CENTER);
-
-        newObstacle.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                // Start the drag operation when the obstacle is long-clicked
-                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
-                v.startDragAndDrop(null, shadowBuilder, v, 0);
-                return true;
-            }
-        });
-
-        newObstacle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] options = new String[]{"Top", "Bottom", "Left", "Right"};
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
-                builder.setTitle("Select Image Location")
-                        .setItems(options, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String selection = options[which];
-                                switch (selection) {
-                                    case "Top":
-                                        v.setBackgroundResource(R.drawable.obstacle_border_top);
-                                        break;
-                                    case "Bottom":
-                                        v.setBackgroundResource(R.drawable.obstacle_border_bottom);
-                                        break;
-                                    case "Left":
-                                        v.setBackgroundResource(R.drawable.obstacle_border_left);
-                                        break;
-                                    case "Right":
-                                        v.setBackgroundResource(R.drawable.obstacle_border_right);
-                                        break;
-                                }
-                            }
-                        })
-                        .setCancelable(false);
-
-                builder.show();
-            }
-        });
-        return newObstacle;
     }
 }
