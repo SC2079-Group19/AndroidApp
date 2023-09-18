@@ -25,6 +25,7 @@ public class BluetoothConnectionManager {
     public static final int CONNECTION_SUCCESSFUL = 0;
     public static final int RECEIVED_MESSAGE = 1;
     public static final int CONNECTION_LOST = 2;
+    public static final int RECONNECTION_SUCCESSFUL = 3;
 
     private BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothSocket mSocket;
@@ -106,17 +107,20 @@ public class BluetoothConnectionManager {
             reconnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
         }
         Thread reconnectThread = new Thread(() -> {
-            try {
-                mSocket = lastConnectedDevice.createRfcommSocketToServiceRecord(RANDOM_UUID);
-                mSocket.connect();
+            while (!isIntentionalDisconnect) {
+                try {
+                    mSocket = lastConnectedDevice.createRfcommSocketToServiceRecord(RANDOM_UUID);
+                    mSocket.connect();
 
-                mConnectedThread = new ConnectedThread(mSocket);
-                mConnectedThread.start();
+                    mConnectedThread = new ConnectedThread(mSocket);
+                    mConnectedThread.start();
 
-                reconnectionCallback.obtainMessage(CONNECTION_SUCCESSFUL).sendToTarget();
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage());
-                reconnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
+                    isIntentionalDisconnect = false;
+                    reconnectionCallback.obtainMessage(CONNECTION_SUCCESSFUL).sendToTarget();
+                    break;
+                } catch (IOException e) {
+                    Log.e(TAG, e.getMessage());
+                }
             }
         });
 
@@ -196,6 +200,4 @@ public class BluetoothConnectionManager {
             }
         }
     }
-
-
 }

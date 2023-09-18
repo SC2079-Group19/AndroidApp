@@ -77,7 +77,6 @@ public class BluetoothConnectionFragment extends Fragment {
                         Log.e("Message", e.getMessage());
                     }
             }
-
         }
     };
 
@@ -91,12 +90,6 @@ public class BluetoothConnectionFragment extends Fragment {
                 case BluetoothConnectionManager.CONNECTION_SUCCESSFUL:
                     requireActivity().runOnUiThread(() -> {
                         Toast.makeText(requireActivity(), "Back Online", Toast.LENGTH_LONG).show();
-                    });
-                    break;
-                case BluetoothConnectionManager.CONNECTION_FAILED:
-                    requireActivity().runOnUiThread(() -> {
-                        NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_HomeFragment_to_BluetoothConnectionFragment);
-                        Toast.makeText(requireActivity(), "Connection Failed!", Toast.LENGTH_LONG).show();
                     });
                     break;
             }
@@ -198,6 +191,7 @@ public class BluetoothConnectionFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         try {
                             bluetoothConnectionManager.disconnect();
+                            NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_HomeFragment_to_BluetoothConnectionFragment);
                         } catch (IOException e) {
                             Log.e("BluetoothConnection", e.getMessage());
                         }
