@@ -95,8 +95,10 @@ public class BluetoothConnectionManager {
     public void disconnect() throws IOException {
         try {
             isIntentionalDisconnect = true;
-            mConnectedThread.cancel();
-            mSocket.close();
+            if (mConnectedThread != null && mSocket != null) {
+                mConnectedThread.cancel();
+                mSocket.close();
+            }
         } catch (IOException e) {
             throw e;
         }

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -16,12 +17,15 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.bluetooth.BluetoothPermissionManager;
 import com.example.mdpapp.databinding.ActivityMainBinding;
 import com.example.mdpapp.view_models.MessageViewModel;
 
 import android.provider.Settings;
 import android.view.View;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,6 +62,18 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
+        try {
+            bluetoothConnectionManager.disconnect();
+        } catch (IOException e) {
+            Log.e("MainActivity", e.getMessage());
+        }
+    }
+
 
     private void showPermissionsNotGrantedDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
