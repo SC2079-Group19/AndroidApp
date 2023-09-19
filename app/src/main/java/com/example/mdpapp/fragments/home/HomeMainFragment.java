@@ -39,7 +39,7 @@ public class HomeMainFragment extends Fragment {
     private HomeMainFragmentBinding binding;
     private BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
     private int currentHighestObstacle = 0;
-    private static final int MAX_NO_OBSTACLES = 10;
+    private static final int MAX_NO_OBSTACLES = 20;
     private static ArrayList<TextView> obstacles = new ArrayList<>();
 
     @Nullable
@@ -341,6 +341,8 @@ public class HomeMainFragment extends Fragment {
                             obstacle.setLayoutParams(params);
                             if (((View) obstacle.getParent()).getId() == binding.frame.getId()) {
                                 binding.frame.removeView(obstacle);
+                            } else {
+                                binding.obstacleStack.removeView(obstacle);
                             }
                             binding.obstacleStack.addView(obstacle);
                         }
