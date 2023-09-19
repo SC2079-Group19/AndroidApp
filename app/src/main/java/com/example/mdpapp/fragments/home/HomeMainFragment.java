@@ -217,6 +217,7 @@ public class HomeMainFragment extends Fragment {
                         }
 
                     case DragEvent.ACTION_DROP:
+                        // remove highlight from the previously highlighted axis labels
                         if (highlightedAxisX != null) {
                             highlightAxis(highlightedAxisX, highlightedAxisY, Color.TRANSPARENT, axisNormalFgColor);
                         }
@@ -241,6 +242,9 @@ public class HomeMainFragment extends Fragment {
 
                         View item = (View) event.getLocalState();
                         if (item.getId() == binding.robot.getId()) {
+                            if (gridY <= 1  || gridY >= gridSize || gridX <= 2 || gridX > gridSize) {
+                                return false;
+                            }
                             ImageView robot = (ImageView) item;
                             FrameLayout.LayoutParams params = null;
                             if(((View) robot.getParent()).getId() == binding.llObstacleCar.getId()) {
