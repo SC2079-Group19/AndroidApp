@@ -209,8 +209,12 @@ public class HomeMainFragment extends Fragment {
                     case DragEvent.ACTION_DRAG_STARTED:
                     case DragEvent.ACTION_DRAG_ENDED:
                     case DragEvent.ACTION_DRAG_ENTERED:
-                    case DragEvent.ACTION_DRAG_EXITED:
                         return true;
+
+                    case DragEvent.ACTION_DRAG_EXITED:
+                        if (highlightedAxisX != null) {
+                            highlightAxis(highlightedAxisX, highlightedAxisY, Color.TRANSPARENT, axisNormalFgColor);
+                        }
 
                     case DragEvent.ACTION_DROP:
                         if (highlightedAxisX != null) {
