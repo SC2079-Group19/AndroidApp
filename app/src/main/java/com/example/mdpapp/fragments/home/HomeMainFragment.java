@@ -23,11 +23,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.mdpapp.MainActivity;
 import com.example.mdpapp.R;
 import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.HomeMainFragmentBinding;
+import com.example.mdpapp.view_models.MessageViewModel;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -370,6 +373,37 @@ public class HomeMainFragment extends Fragment {
                     default:
                         return false;
                 }
+            }
+        });
+
+        MessageViewModel messageViewModel = ((MainActivity) requireActivity()).getMessageViewModel();
+
+        messageViewModel.getMessageType().observe(getViewLifecycleOwner(), messageHeader -> {
+            switch (messageHeader) {
+                case ROBOT_LOCATION:
+                    if(((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
+                        break;
+                    }
+
+                    try {
+                        JSONObject robotLocation = new JSONObject(messageViewModel.getMessageContent().getValue());
+                        int gridX = Integer.parseInt((String) robotLocation.get("x"));
+                        int gridY = Integer.parseInt((String) robotLocation.get("y"));
+                        int orientation = Integer.parseInt((String) robotLocation.get("d"));
+
+                        TextView cell = (TextView) gridLayout.getChildAt((gridY - 2) * (gridSize + 1) + (gridX - 2));
+                        if (cell == null) {
+                            break;
+                        }
+                        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) binding.robot.getLayoutParams();
+                        layoutParams.leftMargin = ((int) cell.getX()) - (cellSize + cellSpacing);
+                        layoutParams.topMargin= ((int) cell.getY()) - (cellSize + cellSpacing);
+                        binding.robot.setLayoutParams(layoutParams);
+                        binding.robot.setRotation(orientation);
+
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Robot Location JSON Error");
+                    }
             }
         });
 
