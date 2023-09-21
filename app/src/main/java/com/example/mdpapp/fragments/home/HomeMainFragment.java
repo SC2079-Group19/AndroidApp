@@ -152,6 +152,12 @@ public class HomeMainFragment extends Fragment {
                                     }
                                 }
                             })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
                             .setCancelable(false);
 
                     builder.show();
@@ -192,6 +198,9 @@ public class HomeMainFragment extends Fragment {
 
         requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
         int axisNormalFgColor = typedValue.data;
+
+        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnPrimary, typedValue, true);
+        int robotUnderneathColor = typedValue.data;
 
         binding.frame.setOnDragListener(new View.OnDragListener() {
             private TextView highlightedAxisX = null;
@@ -258,7 +267,8 @@ public class HomeMainFragment extends Fragment {
                             params.topMargin = top - (cellSize + cellSpacing);
                             params.width = cellSize*3;
                             params.height = cellSize*3;
-                            binding.robot.setLayoutParams(params);
+                            robot.setLayoutParams(params);
+                            robot.setBackgroundColor(robotUnderneathColor);
 
                         } else {
                             TextView obstacle = (TextView) item;
@@ -338,6 +348,7 @@ public class HomeMainFragment extends Fragment {
                             params.height = cellSize*3;
                             params.width = cellSize*3;
                             robot.setLayoutParams(params);
+                            robot.setBackgroundColor(Color.TRANSPARENT);
                             binding.llObstacleCar.addView(robot);
                         } else {
                             TextView obstacle = (TextView) item;
