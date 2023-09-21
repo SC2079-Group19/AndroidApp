@@ -374,7 +374,7 @@ public class HomeMainFragment extends Fragment {
         });
 
         binding.dpad.setOnDirectionClickListener(direction -> {
-            int stepSize = 161;
+            int stepSize = cellSize+(2*cellSpacing);
             float orientation = binding.robot.getRotation();
             
             switch (direction) {
