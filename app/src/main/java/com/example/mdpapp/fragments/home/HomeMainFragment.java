@@ -41,7 +41,6 @@ public class HomeMainFragment extends Fragment {
     private static final String TAG = "HomeMainFragment";
     private HomeMainFragmentBinding binding;
     private BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
-    private int currentHighestObstacle = 0;
     private static final int MAX_NO_OBSTACLES = 20;
     private static ArrayList<TextView> obstacles = new ArrayList<>();
 
@@ -109,6 +108,7 @@ public class HomeMainFragment extends Fragment {
             newObstacle.setBackgroundColor(Color.BLACK);
             newObstacle.setTextColor(Color.WHITE);
             newObstacle.setGravity(Gravity.CENTER);
+            newObstacle.setTextSize(10);
 
             FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.topMargin = 0;
@@ -380,6 +380,21 @@ public class HomeMainFragment extends Fragment {
 
         messageViewModel.getMessageType().observe(getViewLifecycleOwner(), messageHeader -> {
             switch (messageHeader) {
+                case TARGET_IMAGE:
+                    JSONObject targetImage = null;
+                    try {
+                        targetImage = new JSONObject(messageViewModel.getMessageContent().getValue());
+                        int obstacleId = Integer.parseInt((String) targetImage.get("obstacle_id"));
+                        int targetId = Integer.parseInt((String) targetImage.get("target_id"));
+
+                        TextView obstacle = obstacles.get(obstacleId-1);
+                        obstacle.setText(targetId);
+                        obstacle.setTextSize(16);
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Robot Location JSON Error");
+                    }
+                    break;
+
                 case ROBOT_LOCATION:
                     if(((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
                         break;
@@ -404,6 +419,7 @@ public class HomeMainFragment extends Fragment {
                     } catch (JSONException e) {
                         Log.e(TAG, "Robot Location JSON Error");
                     }
+                    break;
             }
         });
 
