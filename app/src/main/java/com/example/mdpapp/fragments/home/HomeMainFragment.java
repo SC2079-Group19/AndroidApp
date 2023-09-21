@@ -374,8 +374,27 @@ public class HomeMainFragment extends Fragment {
         });
 
         binding.dpad.setOnDirectionClickListener(direction -> {
+            int stepSize = 161;
+            float orientation = binding.robot.getRotation();
+            
             switch (direction) {
                 case UP:
+                    if (orientation == 0) {         // when robot is facing up
+                        moveRobot(0, -stepSize);    // robot moves up
+                    }
+
+                    else if (orientation == 90) {   // when robot is facing right
+                        moveRobot(stepSize, 0);     // robot moves right
+                    }
+
+                    else if (orientation == 180) {  // when robot is facing down
+                        moveRobot(0, stepSize);     // robot moves down
+                    }
+
+                    else {                          // when robot is facing left
+                        moveRobot(-stepSize, 0);    // robot moves left
+                    }
+                    
                     try {
                         JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "FW10");
                         bluetoothConnectionManager.sendMessage(message.toString());
@@ -385,6 +404,22 @@ public class HomeMainFragment extends Fragment {
                     }
                     break;
                 case DOWN:
+                    if (orientation == 0) {         // when robot is facing up
+                        moveRobot(0, stepSize);     // robot moves down
+                    }
+
+                    else if (orientation == 90) {   // when robot is facing right
+                        moveRobot(-stepSize, 0);    // robot moves left
+                    }
+
+                    else if (orientation == 180) {  // when robot is facing down
+                        moveRobot(0, -stepSize);    // robot moves up
+                    }
+
+                    else {                          // when robot is facing left
+                        moveRobot(stepSize, 0);     // robot moves right
+                    }
+                    
                     try {
                         JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "BW10");
                         bluetoothConnectionManager.sendMessage(message.toString());
@@ -394,6 +429,26 @@ public class HomeMainFragment extends Fragment {
                     }
                     break;
                 case LEFT:
+                    if (orientation == 0) {                                                 // when robot is facing up
+                        moveRobot(-stepSize, -stepSize);                                    // robot moves up and left
+                        binding.robot.setRotation((binding.robot.getRotation() + 270));     // robot faces left
+                    }
+
+                    else if (orientation == 90) {                                           // when robot is facing right
+                        moveRobot(stepSize, -stepSize);                                     // robot moves right and up
+                        binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces up
+                    }
+
+                    else if (orientation == 180) {                                          // when robot is facing down
+                        moveRobot(stepSize, stepSize);                                      // robot moves down and right
+                        binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces right
+                    }
+
+                    else {                                                                  // when robot is facing left
+                        moveRobot(-stepSize, stepSize);                                     // robot moves left and down
+                        binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces down
+                    }
+                    
                     try {
                         JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "FL00");
                         bluetoothConnectionManager.sendMessage(message.toString());
@@ -403,6 +458,26 @@ public class HomeMainFragment extends Fragment {
                     }
                     break;
                 case RIGHT:
+                    if (orientation == 0) {                                                 // when robot is facing up
+                        moveRobot(stepSize, -stepSize);                                     // robot moves up and right
+                        binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces right
+                    }
+
+                    else if (orientation == 90) {                                           // when robot is facing right
+                        moveRobot(stepSize, stepSize);                                      // robot moves right and down
+                        binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces down
+                    }
+
+                    else if (orientation == 180) {                                          // when robot is facing down
+                        moveRobot(-stepSize, stepSize);                                     // robot moves down and left
+                        binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces left
+                    }
+
+                    else {                                                                  // when robot is facing left
+                        moveRobot(-stepSize, -stepSize);                                    // robot moves left and up
+                        binding.robot.setRotation((binding.robot.getRotation() - 270));     // robot faces up
+                    }
+                    
                     try {
                         JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "FR00");
                         bluetoothConnectionManager.sendMessage(message.toString());
@@ -416,6 +491,19 @@ public class HomeMainFragment extends Fragment {
         });
     }
 
+    // Define the moveRobot method to update the robot's position
+    private void moveRobot(int deltaX, int deltaY) {
+        // Get the current LayoutParams of the robot ImageView
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) binding.robot.getLayoutParams();
+
+        // Update the position based on the input delta values
+        layoutParams.leftMargin += deltaX;
+        layoutParams.topMargin += deltaY;
+
+        // Apply the updated LayoutParams to the ImageView
+        binding.robot.setLayoutParams(layoutParams);
+    }
+    
     private void highlightAxis(TextView axisX, TextView axisY, int bgColor, int fgColor) {
         axisX.setBackgroundColor(bgColor);
         axisY.setBackgroundColor(bgColor);
