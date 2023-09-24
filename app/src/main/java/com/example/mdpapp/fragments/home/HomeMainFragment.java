@@ -250,6 +250,12 @@ public class HomeMainFragment extends Fragment {
                         int top = (int) cell.getY();
 
                         View item = (View) event.getLocalState();
+                        
+                        // Check for collision with existing obstacles
+                        if (item.getId() != binding.robot.getId() && isObstacleCollision(gridX, gridY)) {
+                            return false; // Reject the drop if there's a collision
+                        }
+                        
                         if (item.getId() == binding.robot.getId()) {
                             if (gridY <= 1  || gridY >= gridSize || gridX <= 2 || gridX > gridSize) {
                                 return false;
@@ -320,6 +326,19 @@ public class HomeMainFragment extends Fragment {
                     default:
                         return false;
                 }
+            }
+
+            private boolean isObstacleCollision(int gridX, int gridY) {
+                for (TextView obstacle : obstacles) {
+                    FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) obstacle.getLayoutParams();
+                    int obstacleGridX = (layoutParams.leftMargin / (cellSize + cellSpacing)) + 1;
+                    int obstacleGridY = ((layoutParams.topMargin / (cellSize + cellSpacing)) + 1);
+
+                    if (gridX == obstacleGridX && gridY == obstacleGridY) {
+                        return true; // Collision detected
+                    }
+                }
+                return false; // No collision detected
             }
         });
 
