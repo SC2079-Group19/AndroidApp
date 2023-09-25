@@ -23,11 +23,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.mdpapp.MainActivity;
 import com.example.mdpapp.R;
 import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.HomeMainFragmentBinding;
+import com.example.mdpapp.view_models.MessageViewModel;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -38,7 +41,6 @@ public class HomeMainFragment extends Fragment {
     private static final String TAG = "HomeMainFragment";
     private HomeMainFragmentBinding binding;
     private BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
-    private int currentHighestObstacle = 0;
     private static final int MAX_NO_OBSTACLES = 20;
     private static ArrayList<TextView> obstacles = new ArrayList<>();
 
@@ -106,6 +108,7 @@ public class HomeMainFragment extends Fragment {
             newObstacle.setBackgroundColor(Color.BLACK);
             newObstacle.setTextColor(Color.WHITE);
             newObstacle.setGravity(Gravity.CENTER);
+            newObstacle.setTextSize(10);
 
             FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.topMargin = 0;
@@ -136,19 +139,44 @@ public class HomeMainFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     String selection = options[which];
+                                    JSONObject message = null;
+                                    String obstacle_id = ((TextView) v).getText().toString();
+
+                                    int gridX = (int) (v.getX() / (cellSize + cellSpacing));
+                                    int gridY = (int) (v.getY() / (cellSize + cellSpacing));
+
+                                    int direction = 8;
+
                                     switch (selection) {
                                         case "Top":
                                             v.setBackgroundResource(R.drawable.obstacle_border_top);
+                                            direction = 0;
+
                                             break;
                                         case "Bottom":
+                                            direction = 4;
                                             v.setBackgroundResource(R.drawable.obstacle_border_bottom);
                                             break;
                                         case "Left":
+                                            direction = 6;
                                             v.setBackgroundResource(R.drawable.obstacle_border_left);
                                             break;
                                         case "Right":
+                                            direction = 2;
                                             v.setBackgroundResource(R.drawable.obstacle_border_right);
                                             break;
+                                    }
+
+                                    JSONObject messageData = null;
+                                    try {
+                                        messageData = new JSONObject(String.format("{'id': %s, 'x': %d, 'y': %d, 'd': %d}", obstacle_id, gridX, ((gridSize+1)-gridY)-1, direction));
+                                    } catch (JSONException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, messageData.toString());
+                                    try {
+                                        bluetoothConnectionManager.sendMessage(message.toString());
+                                    } catch (IOException e) {
                                     }
                                 }
                             })
@@ -292,7 +320,15 @@ public class HomeMainFragment extends Fragment {
                             layoutParams.height = cellSize;
                             obstacle.setLayoutParams(layoutParams);
 
-                            JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, obstacle.getText()+", "+(gridX-1)+", "+((gridSize+1)-gridY));
+                            JSONObject message = null;
+                            JSONObject messageData = null;
+                            try {
+                                messageData = new JSONObject(String.format("{'id': %s, 'x': %d, 'y': %d, 'd': %d}", obstacle.getText(), gridX - 1, (gridSize+1)-gridY, 8));
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
+//                            String messageData = String.format("{'id': %s, 'x:': %d, 'y': %d, 'd': %d}", obstacle.getText(), gridX - 1, (gridSize+1)-gridY, 8);
+                            message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, messageData.toString());
                             try {
                                 bluetoothConnectionManager.sendMessage(message.toString());
                             } catch (IOException e) {
@@ -389,6 +425,78 @@ public class HomeMainFragment extends Fragment {
                     default:
                         return false;
                 }
+            }
+        });
+
+        MessageViewModel messageViewModel = ((MainActivity) requireActivity()).getMessageViewModel();
+
+        messageViewModel.getMessageContent().observe(getViewLifecycleOwner(), messageContent -> {
+            JSONMessagesManager.MessageHeader header = messageViewModel.getMessageType().getValue();
+            switch (header) {
+                case IMAGE_RESULT:
+                    JSONObject targetImage = null;
+                    try {
+                        targetImage = new JSONObject(messageViewModel.getMessageContent().getValue());
+                        int obstacleId = (int) targetImage.get("obstacle_id");
+                        int targetId = (int) targetImage.get("target_id");
+
+                        TextView obstacle = binding.frame.findViewById(obstacleId);
+                        if(obstacle != null) {
+                            obstacle.setText(String.valueOf(targetId));
+                            obstacle.setBackgroundColor(Color.BLACK);
+                            obstacle.setTextSize(16);
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Robot Location JSON Error");
+                    }
+                    break;
+
+                case ROBOT_LOCATION:
+                    if(((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
+                        break;
+                    }
+
+                    try {
+                        JSONObject robotLocation = new JSONObject(messageViewModel.getMessageContent().getValue());
+                        int gridX = (int) robotLocation.get("x");
+                        int gridY = (int) robotLocation.get("y");
+                        int orientation = (int) robotLocation.get("d");
+
+
+
+                        gridY = gridSize - gridY;
+
+                        Log.d("ROBT", String.valueOf(gridX));
+                        Log.d("ROBT", String.valueOf(gridY));
+                        Log.d("ROBT", String.valueOf(orientation));
+
+                        TextView cell = (TextView) gridLayout.getChildAt((gridY - 1) * (gridSize + 1) + (gridX + 1));
+                        if (cell == null) {
+                            break;
+                        }
+                        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) binding.robot.getLayoutParams();
+                        layoutParams.leftMargin = ((int) cell.getX()) - (cellSize + cellSpacing);
+                        layoutParams.topMargin= ((int) cell.getY()) - (cellSize + cellSpacing);
+                        binding.robot.setLayoutParams(layoutParams);
+                        switch (orientation) {
+                            case 0:
+                                binding.robot.setRotation(0);
+                                break;
+                            case 2:
+                                binding.robot.setRotation(90);
+                                break;
+                            case 4:
+                                binding.robot.setRotation(180);
+                                break;
+                            case 6:
+                                binding.robot.setRotation(270);
+                                break;
+                        }
+
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Robot Location JSON Error");
+                    }
+                    break;
             }
         });
 
@@ -512,6 +620,9 @@ public class HomeMainFragment extends Fragment {
 
     // Define the moveRobot method to update the robot's position
     private void moveRobot(int deltaX, int deltaY) {
+        if(((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
+            return;
+        }
         // Get the current LayoutParams of the robot ImageView
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) binding.robot.getLayoutParams();
 

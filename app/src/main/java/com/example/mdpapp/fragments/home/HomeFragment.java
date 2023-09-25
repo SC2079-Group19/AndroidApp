@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.mdpapp.MainActivity;
+import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.view_models.MessageViewModel;
 import com.example.mdpapp.R;
 import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
@@ -73,8 +74,9 @@ public class HomeFragment extends Fragment {
 
         MessageViewModel messageViewModel = ((MainActivity) requireActivity()).getMessageViewModel();
 
-        messageViewModel.getMessageType().observe(getViewLifecycleOwner(), messageHeader -> {
-            switch (messageHeader) {
+        messageViewModel.getMessageContent().observe(getViewLifecycleOwner(), messageContent -> {
+            JSONMessagesManager.MessageHeader header = messageViewModel.getMessageType().getValue();
+            switch (header) {
                 case ROBOT_STATUS:
                     binding.txtStatus.setText(messageViewModel.getMessageContent().getValue());
                     break;
