@@ -50,20 +50,14 @@ public class BluetoothConnectionFragment extends Fragment {
         public void handleMessage(@NonNull Message msg) {
             switch (msg.what) {
                 case BluetoothConnectionManager.CONNECTION_SUCCESSFUL:
-                    requireActivity().runOnUiThread(() -> {
-                        NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
-                    });
+                    NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
                     break;
                 case BluetoothConnectionManager.CONNECTION_FAILED:
-                    requireActivity().runOnUiThread(() -> {
-                        binding.txtConnectionStatus.setText("Failed to connect. Try Again!");
-                    });
+                    binding.txtConnectionStatus.setText("Failed to connect. Try Again!");
                     break;
                 case BluetoothConnectionManager.CONNECTION_LOST:
-                    requireActivity().runOnUiThread(() -> {
-                        showConnectionLostDialog();
-                        bluetoothConnectionManager.reconnect(btReconnectionHandler);
-                    });
+                    showConnectionLostDialog();
+                    bluetoothConnectionManager.reconnect(btReconnectionHandler);
                     break;
                 case BluetoothConnectionManager.RECEIVED_MESSAGE:
                     try {
@@ -74,7 +68,7 @@ public class BluetoothConnectionFragment extends Fragment {
                         String messageContent = (String) message.get("data");
                         Log.d("Bluetooth", messageContent);
                         ((MainActivity) requireActivity()).getMessageViewModel().setMessage(messageType, messageContent);
-                    } catch (JSONException e) {
+                    } catch (Exception e) {
                         Log.e("Message", e.getMessage());
                     }
             }
@@ -89,9 +83,7 @@ public class BluetoothConnectionFragment extends Fragment {
             });
             switch (msg.what) {
                 case BluetoothConnectionManager.CONNECTION_SUCCESSFUL:
-                    requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireActivity(), "Back Online", Toast.LENGTH_LONG).show();
-                    });
+                    Toast.makeText(requireActivity(), "Back Online", Toast.LENGTH_LONG).show();
                     break;
             }
         }
