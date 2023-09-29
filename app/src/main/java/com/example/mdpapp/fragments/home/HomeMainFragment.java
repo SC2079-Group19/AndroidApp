@@ -15,6 +15,7 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.view.DragEvent;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +33,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class HomeMainFragment extends Fragment {
@@ -40,6 +43,7 @@ public class HomeMainFragment extends Fragment {
     private BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
     private static final int MAX_NO_OBSTACLES = 20;
     private static ArrayList<TextView> obstacles = new ArrayList<>();
+    private static HashMap<Integer, TextView> obstaclesOnGrid = new HashMap<Integer, TextView>();
     private int cellSize;
     private int cellSpacing;
     private int gridSize;
@@ -100,11 +104,11 @@ public class HomeMainFragment extends Fragment {
             }
         }
 
-        for(int i = 0; i < MAX_NO_OBSTACLES; i++) {
+        for (int i = 0; i < MAX_NO_OBSTACLES; i++) {
             TextView newObstacle = new TextView(requireActivity());
 
-            newObstacle.setText(String.valueOf(i+1));
-            newObstacle.setId(i+1);
+            newObstacle.setText(String.valueOf(i + 1));
+            newObstacle.setId(i + 1);
             newObstacle.setBackgroundColor(Color.BLACK);
             newObstacle.setTextColor(Color.WHITE);
             newObstacle.setGravity(Gravity.CENTER);
@@ -167,17 +171,7 @@ public class HomeMainFragment extends Fragment {
                                             break;
                                     }
 
-                                    JSONObject messageData = null;
-                                    try {
-                                        messageData = new JSONObject(String.format("{'id': %s, 'x': %d, 'y': %d, 'd': %d}", obstacle_id, gridX, ((gridSize+1)-gridY)-1, direction));
-                                    } catch (JSONException e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                    message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, messageData.toString());
-                                    try {
-                                        bluetoothConnectionManager.sendMessage(message.toString());
-                                    } catch (IOException e) {
-                                    }
+                                    v.setTag(R.id.obstacleD, direction);
                                 }
                             })
                             .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -197,8 +191,8 @@ public class HomeMainFragment extends Fragment {
         }
 
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-        params.width = cellSize*3;
-        params.height = cellSize*3;
+        params.width = cellSize * 3;
+        params.height = cellSize * 3;
         binding.robot.setLayoutParams(params);
 
         binding.robot.setOnClickListener(new View.OnClickListener() {
@@ -280,25 +274,25 @@ public class HomeMainFragment extends Fragment {
                         View item = (View) event.getLocalState();
 
                         // Check for collision with existing obstacles
-                        Log.d("Checking", "X: "+gridX);
-                        Log.d("Checking", "Y: "+gridY);
-                        if(isObstacleOnRobot((gridX-1), (gridSize+1)-gridY)) {
+                        Log.d("Checking", "X: " + gridX);
+                        Log.d("Checking", "Y: " + gridY);
+                        if (isObstacleOnRobot((gridX - 1), (gridSize + 1) - gridY)) {
                             return false;
                         }
-                        if (item.getId() != binding.robot.getId() && isObstacleCollision((gridX-1), ((gridSize+1)-gridY)))  {
+                        if (item.getId() != binding.robot.getId() && isObstacleCollision((gridX - 1), ((gridSize + 1) - gridY))) {
                             return false; // Reject the drop if there's a collision
                         }
 
                         if (item.getId() == binding.robot.getId()) {
-                            if(isRobotCollision((gridX-1), (gridSize+1)-gridY)) {
+                            if (isRobotCollision((gridX - 1), (gridSize + 1) - gridY)) {
                                 return false;
                             }
-                            if (gridY <= 1  || gridY >= gridSize || gridX <= 2 || gridX > gridSize) {
+                            if (gridY <= 1 || gridY >= gridSize || gridX <= 2 || gridX > gridSize) {
                                 return false;
                             }
                             ImageView robot = (ImageView) item;
                             FrameLayout.LayoutParams params = null;
-                            if(((View) robot.getParent()).getId() == binding.llObstacleCar.getId()) {
+                            if (((View) robot.getParent()).getId() == binding.llObstacleCar.getId()) {
                                 params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                                 binding.llObstacleCar.removeView(robot);
                                 binding.frame.addView(robot);
@@ -307,8 +301,8 @@ public class HomeMainFragment extends Fragment {
                             }
                             params.leftMargin = left - (cellSize + cellSpacing);
                             params.topMargin = top - (cellSize + cellSpacing);
-                            params.width = cellSize*3;
-                            params.height = cellSize*3;
+                            params.width = cellSize * 3;
+                            params.height = cellSize * 3;
                             robot.setLayoutParams(params);
                             robot.setBackgroundColor(robotUnderneathColor);
 
@@ -316,7 +310,7 @@ public class HomeMainFragment extends Fragment {
                             TextView obstacle = (TextView) item;
 
                             // Check if the view is not already added to the FrameLayout
-                            if (((View)obstacle.getParent()).getId() == binding.obstacleStack.getId()) {
+                            if (((View) obstacle.getParent()).getId() == binding.obstacleStack.getId()) {
                                 // Add the view to the FrameLayout
                                 binding.obstacleStack.removeView(obstacle);
                                 binding.frame.addView(obstacle);
@@ -328,19 +322,15 @@ public class HomeMainFragment extends Fragment {
                             layoutParams.height = cellSize;
                             obstacle.setLayoutParams(layoutParams);
 
-                            JSONObject message = null;
-                            JSONObject messageData = null;
-                            try {
-                                messageData = new JSONObject(String.format("{'id': %s, 'x': %d, 'y': %d, 'd': %d}", obstacle.getText(), gridX - 1, (gridSize+1)-gridY, 8));
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
+                            obstacle.setTag(R.id.obstacleX, gridX - 1);
+                            obstacle.setTag(R.id.obstacleY, (gridSize + 1) - gridY);
+
+                            // Direction has not been set, so set a default direction of None
+                            if (obstacle.getTag(R.id.obstacleD) == null) {
+                                obstacle.setTag(R.id.obstacleD, 8);
                             }
-//                            String messageData = String.format("{'id': %s, 'x:': %d, 'y': %d, 'd': %d}", obstacle.getText(), gridX - 1, (gridSize+1)-gridY, 8);
-                            message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, messageData.toString());
-                            try {
-                                bluetoothConnectionManager.sendMessage(message.toString());
-                            } catch (IOException e) {
-                            }
+
+                            obstaclesOnGrid.put(obstacle.getId(), obstacle);
                         }
 
                         return true;
@@ -397,13 +387,15 @@ public class HomeMainFragment extends Fragment {
                                 binding.llObstacleCar.removeView(robot);
                             }
                             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-                            params.height = cellSize*3;
-                            params.width = cellSize*3;
+                            params.height = cellSize * 3;
+                            params.width = cellSize * 3;
                             robot.setLayoutParams(params);
                             robot.setBackgroundColor(Color.TRANSPARENT);
                             binding.llObstacleCar.addView(robot);
                         } else {
                             TextView obstacle = (TextView) item;
+                            obstaclesOnGrid.remove(obstacle.getId());
+                            obstacle.setText(String.valueOf(obstacle.getId()));
                             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(obstacle.getLayoutParams());
                             params.height = 80;
                             params.width = 80;
@@ -416,6 +408,7 @@ public class HomeMainFragment extends Fragment {
                                 binding.obstacleStack.removeView(obstacle);
                             }
                             binding.obstacleStack.addView(obstacle);
+
                         }
                         return true;
 
@@ -438,7 +431,7 @@ public class HomeMainFragment extends Fragment {
                         int targetId = (int) targetImage.get("target_id");
 
                         TextView obstacle = binding.frame.findViewById(obstacleId);
-                        if(obstacle != null && targetId >= 10 && targetId <= 40) {
+                        if (obstacle != null && targetId >= 10 && targetId <= 40) {
                             obstacle.setText(String.valueOf(targetId));
                             obstacle.setBackgroundColor(Color.BLACK);
                             obstacle.setTextSize(16);
@@ -449,7 +442,7 @@ public class HomeMainFragment extends Fragment {
                     break;
 
                 case ROBOT_LOCATION:
-                    if(((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
+                    if (((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
                         break;
                     }
 
@@ -459,11 +452,11 @@ public class HomeMainFragment extends Fragment {
                         int gridY = (int) robotLocation.get("y");
                         int orientation = (int) robotLocation.get("d");
 
-                        if(isRobotCollision(gridX, gridY)) {
+                        if (isRobotCollision(gridX, gridY)) {
                             break;
                         }
 
-                        if (gridY <= 1  || gridY > gridSize-1 || gridX <= 1 || gridX > gridSize-1) {
+                        if (gridY <= 1 || gridY > gridSize - 1 || gridX <= 1 || gridX > gridSize - 1) {
                             break;
                         }
 
@@ -479,7 +472,7 @@ public class HomeMainFragment extends Fragment {
 
                         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) binding.robot.getLayoutParams();
                         layoutParams.leftMargin = ((int) cell.getX()) - (cellSize + cellSpacing);
-                        layoutParams.topMargin= ((int) cell.getY()) - (cellSize + cellSpacing);
+                        layoutParams.topMargin = ((int) cell.getY()) - (cellSize + cellSpacing);
                         binding.robot.setLayoutParams(layoutParams);
                         switch (orientation) {
                             case 0:
@@ -504,10 +497,10 @@ public class HomeMainFragment extends Fragment {
         });
 
         binding.dpad.setOnDirectionClickListener(direction -> {
-            int stepSize = cellSize+(2*cellSpacing);
+            int stepSize = cellSize + (2 * cellSpacing);
             float orientation = binding.robot.getRotation();
 
-            if(((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
+            if (((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
                 return null;
             }
 
@@ -515,17 +508,11 @@ public class HomeMainFragment extends Fragment {
                 case UP:
                     if (orientation == 0) {         // when robot is facing up
                         moveRobot(0, -stepSize);    // robot moves up
-                    }
-
-                    else if (orientation == 90) {   // when robot is facing right
+                    } else if (orientation == 90) {   // when robot is facing right
                         moveRobot(stepSize, 0);     // robot moves right
-                    }
-
-                    else if (orientation == 180) {  // when robot is facing down
+                    } else if (orientation == 180) {  // when robot is facing down
                         moveRobot(0, stepSize);     // robot moves down
-                    }
-
-                    else {                          // when robot is facing left
+                    } else {                          // when robot is facing left
                         moveRobot(-stepSize, 0);    // robot moves left
                     }
 
@@ -540,17 +527,11 @@ public class HomeMainFragment extends Fragment {
                 case DOWN:
                     if (orientation == 0) {         // when robot is facing up
                         moveRobot(0, stepSize);     // robot moves down
-                    }
-
-                    else if (orientation == 90) {   // when robot is facing right
+                    } else if (orientation == 90) {   // when robot is facing right
                         moveRobot(-stepSize, 0);    // robot moves left
-                    }
-
-                    else if (orientation == 180) {  // when robot is facing down
+                    } else if (orientation == 180) {  // when robot is facing down
                         moveRobot(0, -stepSize);    // robot moves up
-                    }
-
-                    else {                          // when robot is facing left
+                    } else {                          // when robot is facing left
                         moveRobot(stepSize, 0);     // robot moves right
                     }
 
@@ -566,19 +547,13 @@ public class HomeMainFragment extends Fragment {
                     if (orientation == 0) {                                                 // when robot is facing up
                         moveRobot(-stepSize, -stepSize);                                    // robot moves up and left
                         binding.robot.setRotation((binding.robot.getRotation() + 270));     // robot faces left
-                    }
-
-                    else if (orientation == 90) {                                           // when robot is facing right
+                    } else if (orientation == 90) {                                           // when robot is facing right
                         moveRobot(stepSize, -stepSize);                                     // robot moves right and up
                         binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces up
-                    }
-
-                    else if (orientation == 180) {                                          // when robot is facing down
+                    } else if (orientation == 180) {                                          // when robot is facing down
                         moveRobot(stepSize, stepSize);                                      // robot moves down and right
                         binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces right
-                    }
-
-                    else {                                                                  // when robot is facing left
+                    } else {                                                                  // when robot is facing left
                         moveRobot(-stepSize, stepSize);                                     // robot moves left and down
                         binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces down
                     }
@@ -595,19 +570,13 @@ public class HomeMainFragment extends Fragment {
                     if (orientation == 0) {                                                 // when robot is facing up
                         moveRobot(stepSize, -stepSize);                                     // robot moves up and right
                         binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces right
-                    }
-
-                    else if (orientation == 90) {                                           // when robot is facing right
+                    } else if (orientation == 90) {                                           // when robot is facing right
                         moveRobot(stepSize, stepSize);                                      // robot moves right and down
                         binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces down
-                    }
-
-                    else if (orientation == 180) {                                          // when robot is facing down
+                    } else if (orientation == 180) {                                          // when robot is facing down
                         moveRobot(-stepSize, stepSize);                                     // robot moves down and left
                         binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces left
-                    }
-
-                    else {                                                                  // when robot is facing left
+                    } else {                                                                  // when robot is facing left
                         moveRobot(-stepSize, -stepSize);                                    // robot moves left and up
                         binding.robot.setRotation((binding.robot.getRotation() - 270));     // robot faces up
                     }
@@ -622,6 +591,36 @@ public class HomeMainFragment extends Fragment {
                     break;
             }
             return null;
+        });
+
+        binding.btnSendObstacles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (obstaclesOnGrid.size() == 0) {
+                    Toast.makeText(requireActivity(), "No Obstacles Set", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                ArrayList<String> obstacleObjects = new ArrayList<>();
+                for (TextView obstacle : obstaclesOnGrid.values()) {
+                    String messageData = String.format(
+                            "{'id': %s, 'x': %d, 'y': %d, 'd': %d}",
+                            obstacle.getId(),
+                            obstacle.getTag(R.id.obstacleX),
+                            obstacle.getTag(R.id.obstacleY),
+                            obstacle.getTag(R.id.obstacleD));
+                    obstacleObjects.add(messageData.toString());
+                }
+
+                String[] obstacleObjectsArr = Arrays.copyOf(obstacleObjects.toArray(), obstacleObjects.size(), String[].class);
+
+                JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ITEM_LOCATION, Arrays.toString(obstacleObjectsArr));
+                try {
+                    bluetoothConnectionManager.sendMessage(message.toString());
+                } catch (IOException e) {
+                    Log.e("BluetoothConnectionError", e.getMessage());
+                }
+            }
         });
     }
 
@@ -648,14 +647,14 @@ public class HomeMainFragment extends Fragment {
 
     private boolean isObstacleCollision(int gridX, int gridY) {
         for (TextView obstacle : obstacles) {
-            if(((View) obstacle.getParent()).getId() != binding.frame.getId()) {
+            if (((View) obstacle.getParent()).getId() != binding.frame.getId()) {
                 continue;
             }
             FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) obstacle.getLayoutParams();
             int obstacleGridX = (layoutParams.leftMargin / (cellSize + cellSpacing));
             int obstacleGridY = (layoutParams.topMargin / (cellSize + cellSpacing));
 
-            obstacleGridY = (gridSize)-obstacleGridY;
+            obstacleGridY = (gridSize) - obstacleGridY;
 
             if (gridX == obstacleGridX && gridY == obstacleGridY) {
                 return true; // Collision detected
@@ -666,7 +665,7 @@ public class HomeMainFragment extends Fragment {
 
     private boolean isObstacleOnRobot(int gridX, int gridY) {
         Log.d("Checking", "Im here");
-        if(((View) binding.robot.getParent()).getId() != binding.frame.getId()) {
+        if (((View) binding.robot.getParent()).getId() != binding.frame.getId()) {
             return false;
         }
 
@@ -674,13 +673,13 @@ public class HomeMainFragment extends Fragment {
         int robotX = (layoutParams.leftMargin / (cellSize + cellSpacing));
         int robotY = (layoutParams.topMargin / (cellSize + cellSpacing));
         robotX++;
-        robotY = (gridSize-1) - robotY;
+        robotY = (gridSize - 1) - robotY;
 
-        Log.d("Checking", "gridX: "+gridX);
-        Log.d("Checking", "gridY "+gridY);
+        Log.d("Checking", "gridX: " + gridX);
+        Log.d("Checking", "gridY " + gridY);
 
-        Log.d("Checking", "robotX: "+robotX);
-        Log.d("Checking", "robotY: "+robotY);
+        Log.d("Checking", "robotX: " + robotX);
+        Log.d("Checking", "robotY: " + robotY);
 
         if (robotX - 1 <= gridX && robotX + 1 >= gridX && robotY - 1 <= gridY && robotY + 1 >= gridY) {
             return true;
@@ -691,13 +690,13 @@ public class HomeMainFragment extends Fragment {
 
     private boolean isRobotCollision(int gridX, int gridY) {
         return isObstacleCollision(gridX, gridY) ||
-                isObstacleCollision(gridX-1, gridY) ||
-                isObstacleCollision(gridX+1, gridY) ||
-                isObstacleCollision(gridX, gridY-1) ||
-                isObstacleCollision(gridX, gridY+1) ||
-                isObstacleCollision(gridX-1, gridY-1) ||
-                isObstacleCollision(gridX+1, gridY+1) ||
-                isObstacleCollision(gridX-1, gridY+1) ||
-                isObstacleCollision(gridX+1, gridY-1);
+                isObstacleCollision(gridX - 1, gridY) ||
+                isObstacleCollision(gridX + 1, gridY) ||
+                isObstacleCollision(gridX, gridY - 1) ||
+                isObstacleCollision(gridX, gridY + 1) ||
+                isObstacleCollision(gridX - 1, gridY - 1) ||
+                isObstacleCollision(gridX + 1, gridY + 1) ||
+                isObstacleCollision(gridX - 1, gridY + 1) ||
+                isObstacleCollision(gridX + 1, gridY - 1);
     }
 }
