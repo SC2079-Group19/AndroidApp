@@ -158,6 +158,7 @@ public class BluetoothConnectionFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Select a Device").setAdapter(deviceAdapter, (dialog, which) -> {
                     bluetoothConnectionManager.stopScanning();
+                    bluetoothConnectionManager.stopConnectionAttempt();
                     BluetoothDevice selectedDevice = deviceList.get(which);
                     Log.d("BluetoothCon", selectedDevice.getName());
                     bluetoothConnectionManager.connect(selectedDevice, btConnectionHandler);

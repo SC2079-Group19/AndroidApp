@@ -29,6 +29,7 @@ public class BluetoothConnectionManager {
 
     private BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothSocket mSocket;
+    private Thread mConnectThread;
     private ConnectedThread mConnectedThread;
     private Handler mConnectionCallback;
     private final static UUID RANDOM_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -68,11 +69,17 @@ public class BluetoothConnectionManager {
         }
     }
 
+    public void stopConnectionAttempt() {
+        if (mConnectThread != null) {
+            mConnectThread.interrupt();
+        }
+    }
+
     public void connect(BluetoothDevice device, Handler callback) {
         isIntentionalDisconnect = false;
         mConnectionCallback = callback;
 
-        Thread connectThread = new Thread(() -> {
+        mConnectThread = new Thread(() -> {
             try {
                 mSocket = device.createRfcommSocketToServiceRecord(RANDOM_UUID);
                 mSocket.connect();
@@ -89,7 +96,7 @@ public class BluetoothConnectionManager {
                 mConnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
             }
         });
-        connectThread.start();
+        mConnectThread.start();
     }
 
     public void disconnect() throws IOException {

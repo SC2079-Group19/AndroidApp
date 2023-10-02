@@ -1,18 +1,26 @@
 package com.example.mdpapp.fragments.home;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.motion.widget.OnSwipe;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.mdpapp.MainActivity;
 import com.example.mdpapp.utils.JSONMessagesManager;
+import com.example.mdpapp.utils.OnSwipeTouchListener;
 import com.example.mdpapp.view_models.MessageViewModel;
 import com.example.mdpapp.R;
 import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
@@ -20,6 +28,7 @@ import com.example.mdpapp.databinding.HomeFragmentBinding;
 import com.google.android.material.tabs.TabLayout;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
 
@@ -27,6 +36,8 @@ public class HomeFragment extends Fragment {
     private HomeMainFragment homeMainFragment;
     private HomeChatFragment homeChatFragment;
     private BluetoothConnectionManager bluetoothConnectionManager;
+    private ArrayList<String> statusMessages = new ArrayList<>();
+    private int currMsgPtr = -1;
 
     @Override
     public View onCreateView(
@@ -69,6 +80,7 @@ public class HomeFragment extends Fragment {
         return binding.getRoot();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -78,7 +90,9 @@ public class HomeFragment extends Fragment {
             JSONMessagesManager.MessageHeader header = messageViewModel.getMessageType().getValue();
             switch (header) {
                 case ROBOT_STATUS:
-                    binding.txtStatus.setText(messageViewModel.getMessageContent().getValue());
+                    statusMessages.add(messageViewModel.getMessageContent().getValue());
+                    currMsgPtr++;
+                    displayStatus();
                     break;
             }
         });
@@ -102,6 +116,29 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        binding.txtStatus.setOnTouchListener(new OnSwipeTouchListener(requireActivity()) {
+            @Override
+            public void onSwipeRight() {
+                if (currMsgPtr - 1 >= 0) {
+                    currMsgPtr--;
+                    displayStatus();
+                }
+            }
+
+            @Override
+            public void onSwipeLeft() {
+                if (currMsgPtr + 1 < statusMessages.size()) {
+                    currMsgPtr++;
+                    displayStatus();
+                }
+            }
+        });
+    }
+
+    private void displayStatus() {
+        if (currMsgPtr >= 0 && currMsgPtr < statusMessages.size()) {
+            binding.txtStatus.setText(statusMessages.get(currMsgPtr));
+        }
     }
 
     @Override
