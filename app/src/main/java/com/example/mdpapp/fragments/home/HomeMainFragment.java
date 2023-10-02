@@ -47,6 +47,7 @@ public class HomeMainFragment extends Fragment {
     private int cellSize;
     private int cellSpacing;
     private int gridSize;
+    private int gridCellColor;
 
     @Nullable
     @Override
@@ -60,136 +61,15 @@ public class HomeMainFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        GridLayout gridLayout = binding.grid;
-
-        // Obtain the colorSurface attribute from the current theme
-        TypedValue typedValue = new TypedValue();
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true);
-
-        int cellColor = typedValue.data;
-
         gridSize = 20;
         cellSpacing = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics());
         cellSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
+        gridCellColor = getAttrValue(com.google.android.material.R.attr.colorPrimary);
 
-        // Populate the grid
-        for (int row = 0; row < gridSize + 1; row++) { // +1 to include the indicators
-            for (int col = 0; col < gridSize + 1; col++) { // +1 to include the indicators
-                TextView gridCell = new TextView(requireActivity());
-                gridCell.setGravity(Gravity.CENTER);
+        generateGrid();
+        generateObstacles();
 
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-                params.rowSpec = GridLayout.spec(row, 1);
-                params.columnSpec = GridLayout.spec(col, 1);
-                params.setMargins(cellSpacing, cellSpacing, cellSpacing, cellSpacing);
-                params.width = cellSize;
-                params.height = cellSize;
-                gridCell.setLayoutParams(params);
-
-                if (row == gridSize && col == 0) {
-                    // zero label at bottom left
-                    gridCell.setText("0");
-                } else if (row == gridSize) {
-                    // x-axis at the bottom
-                    gridCell.setText(String.valueOf(col));
-                } else if (col == 0) {
-                    // y-axis at the left
-                    gridCell.setText(String.valueOf(gridSize - row));
-                } else {
-                    // normal cell
-                    gridCell.setBackgroundColor(cellColor);
-                }
-
-                gridLayout.addView(gridCell);
-            }
-        }
-
-        for (int i = 0; i < MAX_NO_OBSTACLES; i++) {
-            TextView newObstacle = new TextView(requireActivity());
-
-            newObstacle.setText(String.valueOf(i + 1));
-            newObstacle.setId(i + 1);
-            newObstacle.setBackgroundColor(Color.BLACK);
-            newObstacle.setTextColor(Color.WHITE);
-            newObstacle.setGravity(Gravity.CENTER);
-            newObstacle.setTextSize(10);
-
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-            layoutParams.topMargin = 0;
-            layoutParams.leftMargin = 0;
-            layoutParams.width = 80;
-            layoutParams.height = 80;
-
-            newObstacle.setLayoutParams(layoutParams);
-
-            newObstacle.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    // Start the drag operation when the obstacle is long-clicked
-                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
-                    v.startDragAndDrop(null, shadowBuilder, v, 0);
-                    return true;
-                }
-            });
-
-            newObstacle.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String[] options = new String[]{"Top", "Bottom", "Left", "Right"};
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
-                    builder.setTitle("Select Image Location")
-                            .setItems(options, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String selection = options[which];
-                                    JSONObject message = null;
-                                    String obstacle_id = ((TextView) v).getText().toString();
-
-                                    int gridX = (int) (v.getX() / (cellSize + cellSpacing));
-                                    int gridY = (int) (v.getY() / (cellSize + cellSpacing));
-
-                                    int direction = 8;
-
-                                    switch (selection) {
-                                        case "Top":
-                                            v.setBackgroundResource(R.drawable.obstacle_border_top);
-                                            direction = 0;
-
-                                            break;
-                                        case "Bottom":
-                                            direction = 4;
-                                            v.setBackgroundResource(R.drawable.obstacle_border_bottom);
-                                            break;
-                                        case "Left":
-                                            direction = 6;
-                                            v.setBackgroundResource(R.drawable.obstacle_border_left);
-                                            break;
-                                        case "Right":
-                                            direction = 2;
-                                            v.setBackgroundResource(R.drawable.obstacle_border_right);
-                                            break;
-                                    }
-
-                                    v.setTag(R.id.obstacleD, direction);
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            })
-                            .setCancelable(false);
-
-                    builder.show();
-                }
-            });
-
-            obstacles.add(newObstacle);
-            binding.obstacleStack.addView(newObstacle, 0);
-        }
-
+        // Set the size of the robot
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
         params.width = cellSize * 3;
         params.height = cellSize * 3;
@@ -201,6 +81,7 @@ public class HomeMainFragment extends Fragment {
                 binding.robot.setRotation((binding.robot.getRotation() + 90) % 360);
             }
         });
+
         // Add the drag-and-drop functionality for the robot image
         binding.robot.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -212,17 +93,10 @@ public class HomeMainFragment extends Fragment {
             }
         });
 
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorSecondary, typedValue, true);
-        int axisHighlightBgColor = typedValue.data;
-
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSecondary, typedValue, true);
-        int axisHighlightFgColor = typedValue.data;
-
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
-        int axisNormalFgColor = typedValue.data;
-
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnPrimary, typedValue, true);
-        int robotUnderneathColor = typedValue.data;
+        int axisHighlightBgColor = getAttrValue(com.google.android.material.R.attr.colorSecondary);
+        int axisHighlightFgColor = getAttrValue(com.google.android.material.R.attr.colorOnSecondary);
+        int axisNormalFgColor = getAttrValue(com.google.android.material.R.attr.colorOnSurface);
+        int robotUnderneathColor = getAttrValue(com.google.android.material.R.attr.colorOnPrimary);
 
         binding.frame.setOnDragListener(new View.OnDragListener() {
             private TextView highlightedAxisX = null;
@@ -246,6 +120,7 @@ public class HomeMainFragment extends Fragment {
                         if (highlightedAxisX != null) {
                             highlightAxis(highlightedAxisX, highlightedAxisY, Color.TRANSPARENT, axisNormalFgColor);
                         }
+                        return true;
 
                     case DragEvent.ACTION_DROP:
                         // remove highlight from the previously highlighted axis labels
@@ -262,7 +137,7 @@ public class HomeMainFragment extends Fragment {
                             return false;
                         }
 
-                        TextView cell = (TextView) gridLayout.getChildAt((gridY - 1) * (gridSize + 1) + (gridX - 1));
+                        TextView cell = (TextView) binding.grid.getChildAt((gridY - 1) * (gridSize + 1) + (gridX - 1));
                         if (cell == null) {
                             return false;
                         }
@@ -274,8 +149,6 @@ public class HomeMainFragment extends Fragment {
                         View item = (View) event.getLocalState();
 
                         // Check for collision with existing obstacles
-                        Log.d("Checking", "X: " + gridX);
-                        Log.d("Checking", "Y: " + gridY);
                         if (isObstacleOnRobot((gridX - 1), (gridSize + 1) - gridY)) {
                             return false;
                         }
@@ -347,8 +220,8 @@ public class HomeMainFragment extends Fragment {
                                 highlightAxis(highlightedAxisX, highlightedAxisY, Color.TRANSPARENT, axisNormalFgColor);
                             }
 
-                            TextView axisX = (TextView) gridLayout.getChildAt((gridY - 1) * (gridSize + 1));
-                            TextView axisY = (TextView) gridLayout.getChildAt((gridSize) * (gridSize + 1) + (gridX - 1));
+                            TextView axisX = (TextView) binding.grid.getChildAt((gridY - 1) * (gridSize + 1));
+                            TextView axisY = (TextView) binding.grid.getChildAt((gridSize) * (gridSize + 1) + (gridX - 1));
                             highlightAxis(axisX, axisY, axisHighlightBgColor, axisHighlightFgColor);
 
                             highlightedAxisX = axisX;
@@ -465,7 +338,7 @@ public class HomeMainFragment extends Fragment {
 
                         gridY = gridSize - gridY;
 
-                        TextView cell = (TextView) gridLayout.getChildAt((gridY - 1) * (gridSize + 1) + (gridX + 1));
+                        TextView cell = (TextView) binding.grid.getChildAt((gridY - 1) * (gridSize + 1) + (gridX + 1));
                         if (cell == null) {
                             break;
                         }
@@ -618,10 +491,122 @@ public class HomeMainFragment extends Fragment {
                 try {
                     bluetoothConnectionManager.sendMessage(message.toString());
                 } catch (IOException e) {
-                    Log.e("BluetoothConnectionError", e.getMessage());
+                    Log.e(TAG, e.getMessage());
                 }
             }
         });
+    }
+
+    private void generateGrid() {
+        for (int row = 0; row < gridSize + 1; row++) { // +1 to include the indicators
+            for (int col = 0; col < gridSize + 1; col++) { // +1 to include the indicators
+                TextView gridCell = new TextView(requireActivity());
+                gridCell.setGravity(Gravity.CENTER);
+
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                params.rowSpec = GridLayout.spec(row, 1);
+                params.columnSpec = GridLayout.spec(col, 1);
+                params.setMargins(cellSpacing, cellSpacing, cellSpacing, cellSpacing);
+                params.width = cellSize;
+                params.height = cellSize;
+                gridCell.setLayoutParams(params);
+
+                if (row == gridSize && col == 0) {
+                    // zero label at bottom left
+                    gridCell.setText("0");
+                } else if (row == gridSize) {
+                    // x-axis at the bottom
+                    gridCell.setText(String.valueOf(col));
+                } else if (col == 0) {
+                    // y-axis at the left
+                    gridCell.setText(String.valueOf(gridSize - row));
+                } else {
+                    // normal cell
+                    gridCell.setBackgroundColor(gridCellColor);
+                }
+
+                binding.grid.addView(gridCell);
+            }
+        }
+    }
+
+    private void generateObstacles() {
+        for (int i = 0; i < MAX_NO_OBSTACLES; i++) {
+            TextView newObstacle = new TextView(requireActivity());
+
+            newObstacle.setText(String.valueOf(i + 1));
+            newObstacle.setId(i + 1);
+            newObstacle.setBackgroundColor(Color.BLACK);
+            newObstacle.setTextColor(Color.WHITE);
+            newObstacle.setGravity(Gravity.CENTER);
+            newObstacle.setTextSize(10);
+
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+            layoutParams.topMargin = 0;
+            layoutParams.leftMargin = 0;
+            layoutParams.width = 80;
+            layoutParams.height = 80;
+
+            newObstacle.setLayoutParams(layoutParams);
+
+            newObstacle.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    // Start the drag operation when the obstacle is long-clicked
+                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
+                    v.startDragAndDrop(null, shadowBuilder, v, 0);
+                    return true;
+                }
+            });
+
+            newObstacle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String[] options = new String[]{"Top", "Bottom", "Left", "Right"};
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+                    builder.setTitle("Select Image Location")
+                            .setItems(options, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String selection = options[which];
+                                    int direction = 8;
+
+                                    switch (selection) {
+                                        case "Top":
+                                            v.setBackgroundResource(R.drawable.obstacle_border_top);
+                                            direction = 0;
+                                            break;
+
+                                        case "Bottom":
+                                            direction = 4;
+                                            v.setBackgroundResource(R.drawable.obstacle_border_bottom);
+                                            break;
+
+                                        case "Left":
+                                            direction = 6;
+                                            v.setBackgroundResource(R.drawable.obstacle_border_left);
+                                            break;
+
+                                        case "Right":
+                                            direction = 2;
+                                            v.setBackgroundResource(R.drawable.obstacle_border_right);
+                                            break;
+                                    }
+
+                                    v.setTag(R.id.obstacleD, direction);
+                                }
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .setCancelable(false);
+
+                    builder.show();
+                }
+            });
+
+            obstacles.add(newObstacle);
+            binding.obstacleStack.addView(newObstacle, 0);
+        }
     }
 
     // Define the moveRobot method to update the robot's position
@@ -664,7 +649,6 @@ public class HomeMainFragment extends Fragment {
     }
 
     private boolean isObstacleOnRobot(int gridX, int gridY) {
-        Log.d("Checking", "Im here");
         if (((View) binding.robot.getParent()).getId() != binding.frame.getId()) {
             return false;
         }
@@ -674,12 +658,6 @@ public class HomeMainFragment extends Fragment {
         int robotY = (layoutParams.topMargin / (cellSize + cellSpacing));
         robotX++;
         robotY = (gridSize - 1) - robotY;
-
-        Log.d("Checking", "gridX: " + gridX);
-        Log.d("Checking", "gridY " + gridY);
-
-        Log.d("Checking", "robotX: " + robotX);
-        Log.d("Checking", "robotY: " + robotY);
 
         if (robotX - 1 <= gridX && robotX + 1 >= gridX && robotY - 1 <= gridY && robotY + 1 >= gridY) {
             return true;
@@ -698,5 +676,11 @@ public class HomeMainFragment extends Fragment {
                 isObstacleCollision(gridX + 1, gridY + 1) ||
                 isObstacleCollision(gridX - 1, gridY + 1) ||
                 isObstacleCollision(gridX + 1, gridY - 1);
+    }
+
+    private int getAttrValue(int res)  {
+        TypedValue typedValue = new TypedValue();
+        requireActivity().getTheme().resolveAttribute(res, typedValue, true);
+        return typedValue.data;
     }
 }
