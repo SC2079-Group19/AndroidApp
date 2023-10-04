@@ -504,16 +504,27 @@ public class HomeMainFragment extends Fragment {
                 return null;
             }
 
+            int gridX = (int) (binding.robot.getX() / (cellSize + cellSpacing));
+            int gridY = (int) (binding.robot.getY() / (cellSize + cellSpacing));
+
             switch (direction) {
                 case UP:
-                    if (orientation == 0) {         // when robot is facing up
-                        moveRobot(0, -stepSize);    // robot moves up
-                    } else if (orientation == 90) {   // when robot is facing right
-                        moveRobot(stepSize, 0);     // robot moves right
-                    } else if (orientation == 180) {  // when robot is facing down
-                        moveRobot(0, stepSize);     // robot moves down
+                    if (orientation == 0){         // when robot is facing up
+                        if (gridY > 0) {            // check top boundary
+                            moveRobot(0, -stepSize);    // robot moves up
+                        }
+                    } else if (orientation == 90){   // when robot is facing right
+                        if (gridX < gridSize - 2) {     // check right boundary
+                            moveRobot(stepSize, 0);     // robot moves right
+                        }
+                    } else if (orientation == 180){  // when robot is facing down
+                        if (gridY < gridSize - 3) {     // check bottom boundary
+                            moveRobot(0, stepSize);     // robot moves down
+                        }
                     } else {                          // when robot is facing left
-                        moveRobot(-stepSize, 0);    // robot moves left
+                        if (gridX > 1) {            // check left boundary
+                            moveRobot(-stepSize, 0);    // robot moves left
+                        }
                     }
 
                     try {
@@ -526,13 +537,21 @@ public class HomeMainFragment extends Fragment {
                     break;
                 case DOWN:
                     if (orientation == 0) {         // when robot is facing up
-                        moveRobot(0, stepSize);     // robot moves down
+                        if (gridY < gridSize - 3) {     // check bottom boundary
+                            moveRobot(0, stepSize);     // robot moves down
+                        }
                     } else if (orientation == 90) {   // when robot is facing right
-                        moveRobot(-stepSize, 0);    // robot moves left
+                        if (gridX > 1) {                // check left boundary
+                            moveRobot(-stepSize, 0);    // robot moves left
+                        }
                     } else if (orientation == 180) {  // when robot is facing down
-                        moveRobot(0, -stepSize);    // robot moves up
+                        if (gridY > 0) {                // check top boundary
+                            moveRobot(0, -stepSize);    // robot moves up
+                        }
                     } else {                          // when robot is facing left
-                        moveRobot(stepSize, 0);     // robot moves right
+                        if (gridX < gridSize - 2) {     // check right boundary
+                            moveRobot(stepSize, 0);     // robot moves right
+                        }
                     }
 
                     try {
@@ -545,17 +564,25 @@ public class HomeMainFragment extends Fragment {
                     break;
                 case LEFT:
                     if (orientation == 0) {                                                 // when robot is facing up
-                        moveRobot(-stepSize, -stepSize);                                    // robot moves up and left
-                        binding.robot.setRotation((binding.robot.getRotation() + 270));     // robot faces left
+                        if ((gridX > 1) && (gridY > 0)){                                    // check top and left boundary
+                            moveRobot(-stepSize, -stepSize);                                    // robot moves up and left
+                            binding.robot.setRotation((binding.robot.getRotation() + 270));     // robot faces left
+                        }
                     } else if (orientation == 90) {                                           // when robot is facing right
-                        moveRobot(stepSize, -stepSize);                                     // robot moves right and up
-                        binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces up
+                        if ((gridY > 0) && (gridX < gridSize - 2)) {                            // check top and right boundary
+                            moveRobot(stepSize, -stepSize);                                     // robot moves right and up
+                            binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces up
+                        }
                     } else if (orientation == 180) {                                          // when robot is facing down
-                        moveRobot(stepSize, stepSize);                                      // robot moves down and right
-                        binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces right
+                        if ((gridY < gridSize - 3) && (gridX < gridSize - 2)) {                 // check bottom and right boundary
+                            moveRobot(stepSize, stepSize);                                      // robot moves down and right
+                            binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces right
+                        }
                     } else {                                                                  // when robot is facing left
-                        moveRobot(-stepSize, stepSize);                                     // robot moves left and down
-                        binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces down
+                        if ((gridX > 1) && (gridY < gridSize - 3)) {                            // check bottom and left boundary
+                            moveRobot(-stepSize, stepSize);                                     // robot moves left and down
+                            binding.robot.setRotation((binding.robot.getRotation() - 90));      // robot faces down
+                        }
                     }
 
                     try {
@@ -568,17 +595,25 @@ public class HomeMainFragment extends Fragment {
                     break;
                 case RIGHT:
                     if (orientation == 0) {                                                 // when robot is facing up
-                        moveRobot(stepSize, -stepSize);                                     // robot moves up and right
-                        binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces right
+                        if ((gridY > 0) && (gridX < gridSize - 2)) {                            // check top and right boundary
+                            moveRobot(stepSize, -stepSize);                                     // robot moves up and right
+                            binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces right
+                        }
                     } else if (orientation == 90) {                                           // when robot is facing right
-                        moveRobot(stepSize, stepSize);                                      // robot moves right and down
-                        binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces down
+                        if ((gridX < gridSize - 2) && (gridY < gridSize - 3)) {                 // check bottom and right boundary
+                            moveRobot(stepSize, stepSize);                                      // robot moves right and down
+                            binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces down
+                        }
                     } else if (orientation == 180) {                                          // when robot is facing down
-                        moveRobot(-stepSize, stepSize);                                     // robot moves down and left
-                        binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces left
+                        if ((gridY < gridSize - 3) && (gridX > 1)) {                            // check bottom and left boundary
+                            moveRobot(-stepSize, stepSize);                                     // robot moves down and left
+                            binding.robot.setRotation((binding.robot.getRotation() + 90));      // robot faces left
+                        }
                     } else {                                                                  // when robot is facing left
-                        moveRobot(-stepSize, -stepSize);                                    // robot moves left and up
-                        binding.robot.setRotation((binding.robot.getRotation() - 270));     // robot faces up
+                        if ((gridX > 1) && (gridY > 0)) {                                       // check top and left boundary
+                            moveRobot(-stepSize, -stepSize);                                    // robot moves left and up
+                            binding.robot.setRotation((binding.robot.getRotation() - 270));     // robot faces up
+                        }
                     }
 
                     try {
