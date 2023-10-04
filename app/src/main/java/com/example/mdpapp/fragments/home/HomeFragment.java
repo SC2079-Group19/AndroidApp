@@ -2,7 +2,11 @@ package com.example.mdpapp.fragments.home;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.text.Layout;
+import android.text.SpannableString;
 import android.text.method.ScrollingMovementMethod;
+import android.text.style.AlignmentSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -28,7 +32,9 @@ import com.example.mdpapp.databinding.HomeFragmentBinding;
 import com.google.android.material.tabs.TabLayout;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class HomeFragment extends Fragment {
 
@@ -90,9 +96,15 @@ public class HomeFragment extends Fragment {
             JSONMessagesManager.MessageHeader header = messageViewModel.getMessageType().getValue();
             switch (header) {
                 case ROBOT_STATUS:
-                    statusMessages.add(messageViewModel.getMessageContent().getValue());
+                    String statusMessage = messageViewModel.getMessageContent().getValue();
+                    statusMessages.add(statusMessage);
                     currMsgPtr++;
                     displayStatus();
+                    changeArrows();
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm:ss dd/MM/yy");
+                    String dateTime = dateFormat.format(new Date());
+                    binding.txtDateTimeStatus.setText(dateTime);
                     break;
             }
         });
@@ -118,20 +130,42 @@ public class HomeFragment extends Fragment {
         binding.txtStatus.setOnTouchListener(new OnSwipeTouchListener(requireActivity()) {
             @Override
             public void onSwipeRight() {
-                if (currMsgPtr - 1 >= 0) {
-                    currMsgPtr--;
-                    displayStatus();
-                    changeArrows();
-                }
+                scrollStatusRight();
             }
 
             @Override
             public void onSwipeLeft() {
-                if (currMsgPtr + 1 < statusMessages.size()) {
-                    currMsgPtr++;
-                    displayStatus();
-                    changeArrows();
-                }
+                scrollStatusLeft();
+            }
+        });
+
+        binding.rightArrowStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scrollStatusLeft();
+            }
+        });
+
+        binding.rightArrowStatus.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                scrollToLatestStatus();
+                return true;
+            }
+        });
+
+        binding.leftArrowStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scrollStatusRight();
+            }
+        });
+
+        binding.leftArrowStatus.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                scrollToOldestStatus();
+                return true;
             }
         });
     }
@@ -140,6 +174,34 @@ public class HomeFragment extends Fragment {
         if (currMsgPtr >= 0 && currMsgPtr < statusMessages.size()) {
             binding.txtStatus.setText(statusMessages.get(currMsgPtr));
         }
+    }
+
+    private void scrollStatusLeft() {
+        if (currMsgPtr + 1 < statusMessages.size()) {
+            currMsgPtr++;
+            displayStatus();
+            changeArrows();
+        }
+    }
+
+    private void scrollStatusRight() {
+        if (currMsgPtr - 1 >= 0) {
+            currMsgPtr--;
+            displayStatus();
+            changeArrows();
+        }
+    }
+
+    private void scrollToLatestStatus() {
+        currMsgPtr = statusMessages.size() - 1;
+        displayStatus();
+        changeArrows();
+    }
+
+    private void scrollToOldestStatus() {
+        currMsgPtr = 0;
+        displayStatus();
+        changeArrows();
     }
 
     private void changeArrows() {
