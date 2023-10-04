@@ -43,6 +43,7 @@ public class HomeFragment extends Fragment {
     private HomeChatFragment homeChatFragment;
     private BluetoothConnectionManager bluetoothConnectionManager;
     private ArrayList<String> statusMessages = new ArrayList<>();
+    private ArrayList<String> statusTimeStamps = new ArrayList<>();
     private int currMsgPtr = -1;
 
     @Override
@@ -98,13 +99,14 @@ public class HomeFragment extends Fragment {
                 case ROBOT_STATUS:
                     String statusMessage = messageViewModel.getMessageContent().getValue();
                     statusMessages.add(statusMessage);
-                    currMsgPtr++;
-                    displayStatus();
-                    changeArrows();
 
                     SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm:ss dd/MM/yy");
                     String dateTime = dateFormat.format(new Date());
-                    binding.txtDateTimeStatus.setText(dateTime);
+                    statusTimeStamps.add(dateTime);
+
+                    currMsgPtr++;
+                    displayStatus();
+                    changeArrows();
                     break;
             }
         });
@@ -173,6 +175,12 @@ public class HomeFragment extends Fragment {
     private void displayStatus() {
         if (currMsgPtr >= 0 && currMsgPtr < statusMessages.size()) {
             binding.txtStatus.setText(statusMessages.get(currMsgPtr));
+        }
+
+        if (statusTimeStamps.size() == statusMessages.size()) {
+            binding.txtDateTimeStatus.setText(statusTimeStamps.get(currMsgPtr));
+        } else {
+            binding.txtDateTimeStatus.setText(null);
         }
     }
 
