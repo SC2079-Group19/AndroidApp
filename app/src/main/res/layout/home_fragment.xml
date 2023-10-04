@@ -16,16 +16,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <ImageView
+            android:id="@+id/leftArrowStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            android:tint="?colorOnSurfaceVariant"
+            android:src="@drawable/ic_arrow_left" />
+
         <TextView
             android:id="@+id/txtStatus"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginRight="20dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_corner"
             android:gravity="center"
             android:hint="Status"
             android:textSize="10pt" />
+
+        <ImageView
+            android:id="@+id/rightArrowStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginRight="20dp"
+            android:visibility="invisible"
+            android:tint="?colorOnSurfaceVariant"
+            android:src="@drawable/ic_arrow_right" />
 
         <Switch
             android:id="@+id/swConnectedTo"

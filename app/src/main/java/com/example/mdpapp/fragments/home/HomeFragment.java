@@ -97,7 +97,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        if(bluetoothConnectionManager.getConnectedDevice() != null) {
+        if (bluetoothConnectionManager.getConnectedDevice() != null) {
             binding.swConnectedTo.setText("Device: " + bluetoothConnectionManager.getConnectedDevice().getName());
         } else {
             return;
@@ -108,8 +108,7 @@ public class HomeFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try {
                     bluetoothConnectionManager.disconnect();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     Log.e("BluetoothSocket", e.getMessage());
                 }
                 NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.action_HomeFragment_to_BluetoothConnectionFragment);
@@ -122,6 +121,7 @@ public class HomeFragment extends Fragment {
                 if (currMsgPtr - 1 >= 0) {
                     currMsgPtr--;
                     displayStatus();
+                    changeArrows();
                 }
             }
 
@@ -130,6 +130,7 @@ public class HomeFragment extends Fragment {
                 if (currMsgPtr + 1 < statusMessages.size()) {
                     currMsgPtr++;
                     displayStatus();
+                    changeArrows();
                 }
             }
         });
@@ -139,6 +140,29 @@ public class HomeFragment extends Fragment {
         if (currMsgPtr >= 0 && currMsgPtr < statusMessages.size()) {
             binding.txtStatus.setText(statusMessages.get(currMsgPtr));
         }
+    }
+
+    private void changeArrows() {
+        if (statusMessages.size() == 1) {
+            binding.leftArrowStatus.setVisibility(View.INVISIBLE);
+            binding.rightArrowStatus.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        if (currMsgPtr == statusMessages.size() - 1) {
+            binding.leftArrowStatus.setVisibility(View.VISIBLE);
+            binding.rightArrowStatus.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        if (currMsgPtr == 0) {
+            binding.rightArrowStatus.setVisibility(View.VISIBLE);
+            binding.leftArrowStatus.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        binding.leftArrowStatus.setVisibility(View.VISIBLE);
+        binding.rightArrowStatus.setVisibility(View.VISIBLE);
     }
 
     @Override
