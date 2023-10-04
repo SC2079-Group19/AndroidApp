@@ -622,6 +622,18 @@ public class HomeMainFragment extends Fragment {
                 }
             }
         });
+
+        binding.btnStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "Start");
+                try {
+                    bluetoothConnectionManager.sendMessage(message.toString());
+                } catch (IOException e) {
+                    Log.e("BluetoothConnectionError", e.getMessage());
+                }
+            }
+        });
     }
 
     // Define the moveRobot method to update the robot's position
