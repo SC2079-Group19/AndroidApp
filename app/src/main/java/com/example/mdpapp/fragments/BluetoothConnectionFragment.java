@@ -1,5 +1,6 @@
 package com.example.mdpapp.fragments;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.bluetooth.BluetoothDevice;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -50,6 +52,7 @@ public class BluetoothConnectionFragment extends Fragment {
     private ArrayAdapter<String> deviceAdapter;
     private BluetoothPermissionManager bluetoothPermissionManager;
     private androidx.appcompat.app.AlertDialog reconnectionDialog;
+    private AlertDialog deviceSelectionDialog;
     private Handler btConnectionHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(@NonNull Message msg) {
@@ -115,7 +118,7 @@ public class BluetoothConnectionFragment extends Fragment {
         deviceAdapter = new ArrayAdapter<String>(requireActivity(), android.R.layout.simple_list_item_1, deviceListNames);
 
 
-        final BroadcastReceiver receiver = new BroadcastReceiver() {
+        final BroadcastReceiver foundReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
 
@@ -133,28 +136,31 @@ public class BluetoothConnectionFragment extends Fragment {
             }
         };
 
+        final BroadcastReceiver stoppedDiscoveryReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+
+                if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                    Log.d("Discovery", "Finished");
+                    Button alertBtnScan = deviceSelectionDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                    alertBtnScan.setEnabled(true);
+                }
+            }
+        };
+
         binding.btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                deviceList.clear();
-                deviceListNames.clear();
-                deviceAdapter.notifyDataSetChanged();
+                startScanning();
 
-                bluetoothConnectionManager.startScanning();
-                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-                requireActivity().registerReceiver(receiver, filter);
+                IntentFilter foundFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                requireActivity().registerReceiver(foundReceiver, foundFilter);
 
-                Set<BluetoothDevice> pairedDevices = bluetoothConnectionManager.getPairedDevices();
-                if (!pairedDevices.isEmpty()) {
-                    for (BluetoothDevice device : pairedDevices) {
-                        deviceList.add(device);
-                        deviceListNames.add(device.getName());
-                        deviceAdapter.notifyDataSetChanged();
-                    }
-                    showDeviceSelectionDialog();
-                } else {
-                    Toast.makeText(requireContext(), "No Paired devices found.", Toast.LENGTH_LONG);
-                }
+                IntentFilter startedFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+                requireActivity().registerReceiver(stoppedDiscoveryReceiver, startedFilter);
+
+                showDeviceSelectionDialog();
             }
         });
     }
@@ -170,6 +176,7 @@ public class BluetoothConnectionFragment extends Fragment {
                     bluetoothConnectionManager.connect(selectedDevice, btConnectionHandler);
                     binding.txtConnectionStatus.setText("Connecting to " + selectedDevice.getName());
                 })
+                .setPositiveButton("Scan", null)
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -178,8 +185,22 @@ public class BluetoothConnectionFragment extends Fragment {
                 })
                 .setCancelable(false);
 
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        deviceSelectionDialog = builder.create();
+        deviceSelectionDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Button btnScan = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+                btnScan.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                       startScanning();
+                    }
+                });
+
+                btnScan.setEnabled(false);
+            }
+        });
+        deviceSelectionDialog.show();
     }
 
     private void showConnectionLostDialog() {
@@ -220,6 +241,26 @@ public class BluetoothConnectionFragment extends Fragment {
     private void dismissReconnectionDialog() {
         if(reconnectionDialog != null && reconnectionDialog.isShowing()) {
             reconnectionDialog.dismiss();
+        }
+    }
+
+    private void startScanning() {
+        deviceList.clear();
+        deviceListNames.clear();
+        deviceAdapter.notifyDataSetChanged();
+
+        bluetoothConnectionManager.startScanning();
+
+        Set<BluetoothDevice> pairedDevices = bluetoothConnectionManager.getPairedDevices();
+        for (BluetoothDevice device : pairedDevices) {
+            deviceList.add(device);
+            deviceListNames.add(device.getName());
+            deviceAdapter.notifyDataSetChanged();
+        }
+
+        if (deviceSelectionDialog != null) {
+            Button alertBtnScan = deviceSelectionDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            alertBtnScan.setEnabled(false);
         }
     }
 

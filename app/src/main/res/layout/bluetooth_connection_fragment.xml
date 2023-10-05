@@ -32,4 +32,5 @@
         app:layout_constraintEnd_toEndOf="@+id/btnScan"
         app:layout_constraintHorizontal_bias="0.508"
         app:layout_constraintStart_toStartOf="@+id/btnScan" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
