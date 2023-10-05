@@ -57,7 +57,7 @@ public class HomeChatFragment extends Fragment {
             String message = messageViewModel.getMessageContent().getValue();
             String header = messageHeader.toString();
 
-            binding.txtReceivedMsg.append(getFormattedMessage(message, header, true));
+            binding.txtReceivedMsg.append(getFormattedMessage(message, header, false));
         });
 
         binding.txtReceivedMsg.setMovementMethod(new ScrollingMovementMethod());
@@ -77,13 +77,13 @@ public class HomeChatFragment extends Fragment {
                     } catch (IOException e) {
                         Log.e(TAG, e.getMessage());
                     }
-                    binding.txtReceivedMsg.append(getFormattedMessage(msg, msgHeader, false));
+                    binding.txtReceivedMsg.append(getFormattedMessage(msg, msgHeader, true));
                 }
             }
         });
     }
 
-    private SpannableString getFormattedMessage(String msg, String msgHeader, boolean received) {
+    private SpannableString getFormattedMessage(String msg, String msgHeader, boolean sent) {
         String dateTimePattern = "hh:mm:ss dd/MM/yy";
         SimpleDateFormat dateFormat = new SimpleDateFormat(dateTimePattern);
 
@@ -94,7 +94,7 @@ public class HomeChatFragment extends Fragment {
         SpannableString formattedMsg = new SpannableString(fullString);
         formattedMsg.setSpan(new RelativeSizeSpan(0.6f), 0, msgHeader.length()+dateTimePattern.length()+delimiter.length(), 0);
 
-        if (!received) {
+        if (sent) {
             formattedMsg.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_OPPOSITE), 0, fullString.length(), 0);
         }
 
