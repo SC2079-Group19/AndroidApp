@@ -156,7 +156,6 @@ public class HomeMainFragment extends Fragment {
                                         case "Top":
                                             v.setBackgroundResource(R.drawable.obstacle_border_top);
                                             direction = 0;
-
                                             break;
                                         case "Bottom":
                                             direction = 4;
@@ -175,12 +174,16 @@ public class HomeMainFragment extends Fragment {
                                     v.setTag(R.id.obstacleD, direction);
                                 }
                             })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            .setPositiveButton("Reset", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-
+                                    TextView obstacle = (TextView) v;
+                                    obstacle.setText(String.valueOf(obstacle.getId()));
+                                    obstacle.setBackgroundColor(Color.BLACK);
+                                    obstacle.setTag(R.id.obstacleD, 8);
                                 }
                             })
+                            .setNegativeButton("Cancel", null)
                             .setCancelable(false);
 
                     builder.show();
