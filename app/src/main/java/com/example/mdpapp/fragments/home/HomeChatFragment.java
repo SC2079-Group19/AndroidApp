@@ -1,11 +1,15 @@
 package com.example.mdpapp.fragments.home;
 
 import android.os.Bundle;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.method.ScrollingMovementMethod;
+import android.text.style.AlignmentSpan;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.mdpapp.MainActivity;
+import com.example.mdpapp.R;
 import com.example.mdpapp.view_models.MessageViewModel;
 import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.JSONMessagesManager;
@@ -49,16 +54,10 @@ public class HomeChatFragment extends Fragment {
         MessageViewModel messageViewModel = ((MainActivity) requireActivity()).getMessageViewModel();
 
         messageViewModel.getMessageType().observe(getViewLifecycleOwner(), messageHeader -> {
-            String dateTimePattern = "hh:mm:ss dd/MM/yy";
-            SimpleDateFormat dateFormat = new SimpleDateFormat(dateTimePattern);
-            String dateTime = dateFormat.format(new Date());
-
             String message = messageViewModel.getMessageContent().getValue();
             String header = messageHeader.toString();
-            SpannableString formattedMsg = new SpannableString(header+" | "+dateTime+"\n"+message+"\n\n");
-            formattedMsg.setSpan(new RelativeSizeSpan(0.6f), 0, header.length()+dateTimePattern.length()+3, 0);
 
-            binding.txtReceivedMsg.append(formattedMsg);
+            binding.txtReceivedMsg.append(getFormattedMessage(message, header, true));
         });
 
         binding.txtReceivedMsg.setMovementMethod(new ScrollingMovementMethod());
@@ -78,8 +77,27 @@ public class HomeChatFragment extends Fragment {
                     } catch (IOException e) {
                         Log.e(TAG, e.getMessage());
                     }
+                    binding.txtReceivedMsg.append(getFormattedMessage(msg, msgHeader, false));
                 }
             }
         });
+    }
+
+    private SpannableString getFormattedMessage(String msg, String msgHeader, boolean received) {
+        String dateTimePattern = "hh:mm:ss dd/MM/yy";
+        SimpleDateFormat dateFormat = new SimpleDateFormat(dateTimePattern);
+
+        String dateTime = dateFormat.format(new Date());
+        String delimiter = " | ";
+        String fullString = msgHeader+delimiter+dateTime+"\n"+msg+"\n\n";
+
+        SpannableString formattedMsg = new SpannableString(fullString);
+        formattedMsg.setSpan(new RelativeSizeSpan(0.6f), 0, msgHeader.length()+dateTimePattern.length()+delimiter.length(), 0);
+
+        if (!received) {
+            formattedMsg.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_OPPOSITE), 0, fullString.length(), 0);
+        }
+
+        return formattedMsg;
     }
 }
