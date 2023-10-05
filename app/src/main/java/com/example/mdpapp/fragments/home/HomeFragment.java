@@ -21,8 +21,10 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.motion.widget.OnSwipe;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.mdpapp.MainActivity;
+import com.example.mdpapp.fragments.ViewPagerAdapter;
 import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.utils.OnSwipeTouchListener;
 import com.example.mdpapp.view_models.MessageViewModel;
@@ -30,6 +32,7 @@ import com.example.mdpapp.R;
 import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.databinding.HomeFragmentBinding;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -63,31 +66,19 @@ public class HomeFragment extends Fragment {
             homeChatFragment = new HomeChatFragment();
         }
 
-        getChildFragmentManager().beginTransaction().replace(R.id.fragmentContainer, homeMainFragment).commit();
+        ViewPager2 viewPager2 = binding.viewPager;
+        TabLayout tabLayout = binding.tabLayout;
 
-        binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                switch (tab.getPosition()) {
-                    case 0:
-                        getChildFragmentManager().beginTransaction().replace(R.id.fragmentContainer, homeMainFragment).commit();
-                        break;
-                    case 1:
-                        getChildFragmentManager().beginTransaction().replace(R.id.fragmentContainer, homeChatFragment).commit();
-                        break;
-                }
-            }
+        ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(this);
+        pagerAdapter.addFragment(homeMainFragment, "Home");
+        pagerAdapter.addFragment(homeChatFragment, "Chat");
 
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
+        viewPager2.setAdapter(pagerAdapter);
+        viewPager2.setUserInputEnabled(false);
 
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
+        new TabLayoutMediator(tabLayout, viewPager2, (tab, position) -> {
+            tab.setText(pagerAdapter.getTitle(position));
+        }).attach();
 
         return binding.getRoot();
     }
