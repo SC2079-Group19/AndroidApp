@@ -41,9 +41,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="DateTime"
-                    android:textSize="5pt"
                     android:paddingLeft="5dp"
-                    android:paddingRight="5dp" />
+                    android:paddingRight="5dp"
+                    android:textSize="5pt" />
 
                 <TextView
                     android:id="@+id/txtStatus"
@@ -67,16 +67,17 @@
             android:tint="?colorOnSurfaceVariant"
             android:visibility="invisible" />
 
-        <Switch
-            android:id="@+id/swConnectedTo"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:checked="true"
-            android:text="Device"
-            android:textSize="10pt"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            <Switch
+                android:id="@+id/swConnectedTo"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:checked="true"
+                android:text="Connected"
+                android:textSize="10pt"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.google.android.material.tabs.TabLayout
@@ -95,6 +96,7 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            style="@style/Widget.Material3.LinearProgressIndicator"
             android:text="Chat" />
     </com.google.android.material.tabs.TabLayout>
 

@@ -7,53 +7,42 @@
     android:paddingTop="@dimen/tab_top_padding"
     tools:context=".fragments.home.HomeChatFragment">
 
-        <TextView
-            android:id="@+id/txtReceivedHeader"
-            android:layout_width="match_parent"
-            android:layout_height="72dp"
-            android:background="@drawable/rounded_corner"
-            android:gravity="center"
-            android:hint="Header"
-            android:textSize="10pt"
-            app:layout_constraintBottom_toTopOf="@+id/txtReceivedMsg"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!--        <TextView-->
+        <!--            android:id="@+id/txtReceivedHeader"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="72dp"-->
+        <!--            android:background="@drawable/rounded_corner"-->
+        <!--            android:gravity="center"-->
+        <!--            android:hint="Header"-->
+        <!--            android:textSize="10pt"-->
+        <!--            app:layout_constraintBottom_toTopOf="@+id/txtReceivedMsg"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toTopOf="parent" />-->
 
         <TextView
             android:id="@+id/txtReceivedMsg"
             android:layout_width="match_parent"
             android:layout_height="72dp"
+            android:layout_weight="1"
             android:background="@drawable/rounded_corner"
-            android:gravity="center"
-            android:hint="Message"
-            android:textSize="10pt"
-            app:layout_constraintBottom_toTopOf="@+id/editTextSend"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/txtReceivedHeader" />
-
-        <EditText
-            android:id="@+id/editTextSend"
-            android:layout_width="wrap_content"
-            android:layout_height="145dp"
-            android:ems="10"
-            android:hint="Send a message"
-            android:inputType="text"
-            app:layout_constraintBottom_toTopOf="@id/radioBtnGrpMsgHeader"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/txtReceivedMsg" />
-
+            android:gravity="bottom"
+            android:padding="10dp"
+            android:scrollbars="vertical"
+            android:textSize="10pt" />
 
         <RadioGroup
             android:id="@+id/radioBtnGrpMsgHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@+id/editTextSend"
-            app:layout_constraintEnd_toEndOf="@id/editTextSend"
-            app:layout_constraintStart_toStartOf="@id/editTextSend">
+            android:orientation="horizontal">
+
             <RadioButton
                 android:id="@+id/radioBtnRobotLocation"
                 android:layout_width="wrap_content"
@@ -65,6 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ITEM_LOCATION" />
+
             <RadioButton
                 android:id="@+id/ratdioBtnRobotControl"
                 android:layout_width="wrap_content"
@@ -72,14 +62,26 @@
                 android:text="ROBOT_CONTROL" />
         </RadioGroup>
 
-        <Button
-            android:id="@+id/btnSendMsg"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Send"
-            app:layout_constraintTop_toTopOf="@+id/editTextSend"
-            app:layout_constraintBottom_toBottomOf="@+id/editTextSend"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/editTextSend" />
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/editTextSend"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="145dp"
+                android:hint="Send a message"
+                android:inputType="text" />
+
+            <Button
+                android:id="@+id/btnSendMsg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

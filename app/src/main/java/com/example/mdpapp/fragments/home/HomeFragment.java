@@ -55,8 +55,13 @@ public class HomeFragment extends Fragment {
 
         binding = HomeFragmentBinding.inflate(inflater, container, false);
 
-        homeMainFragment = new HomeMainFragment();
-        homeChatFragment = new HomeChatFragment();
+        if (homeMainFragment == null) {
+            homeMainFragment = new HomeMainFragment();
+        }
+
+        if (homeChatFragment == null) {
+            homeChatFragment = new HomeChatFragment();
+        }
 
         getChildFragmentManager().beginTransaction().replace(R.id.fragmentContainer, homeMainFragment).commit();
 

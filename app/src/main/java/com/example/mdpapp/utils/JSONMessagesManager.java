@@ -11,7 +11,7 @@ public class JSONMessagesManager {
         ROBOT_CONTROL,
         ROBOT_STATUS,
         ITEM_LOCATION,
-        IMAGE_DIRECTION,
+        START_MOVEMENT,
         IMAGE_RESULT,
         ROBOT_LOCATION,
         MISC

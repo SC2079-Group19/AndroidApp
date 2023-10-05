@@ -182,7 +182,10 @@ public class BluetoothConnectionManager {
                 try {
                     bytes = mmInStream.read(buffer);
                     String incomingMessage = new String(buffer, 0, bytes);
-                    mmHandler.obtainMessage(RECEIVED_MESSAGE, incomingMessage).sendToTarget();
+                    String[] messages = incomingMessage.split("\n");
+                    for (String message: messages) {
+                        mmHandler.obtainMessage(RECEIVED_MESSAGE, message).sendToTarget();
+                    }
                 } catch (IOException e) {
                     if (!isIntentionalDisconnect) {
                         mmHandler.obtainMessage(CONNECTION_LOST).sendToTarget();

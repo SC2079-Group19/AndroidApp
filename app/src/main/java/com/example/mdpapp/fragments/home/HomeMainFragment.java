@@ -27,6 +27,7 @@ import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.HomeMainFragmentBinding;
 import com.example.mdpapp.view_models.MessageViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -137,7 +138,7 @@ public class HomeMainFragment extends Fragment {
                 public void onClick(View v) {
                     String[] options = new String[]{"Top", "Bottom", "Left", "Right"};
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+                    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireActivity());
                     builder.setTitle("Select Image Location")
                             .setItems(options, new DialogInterface.OnClickListener() {
                                 @Override
@@ -661,7 +662,7 @@ public class HomeMainFragment extends Fragment {
         binding.btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.ROBOT_CONTROL, "Start");
+                JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.START_MOVEMENT, "1");
                 try {
                     bluetoothConnectionManager.sendMessage(message.toString());
                 } catch (IOException e) {

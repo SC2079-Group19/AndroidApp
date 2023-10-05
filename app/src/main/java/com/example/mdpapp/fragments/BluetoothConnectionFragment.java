@@ -1,6 +1,5 @@
 package com.example.mdpapp.fragments;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,14 +10,19 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.bluetooth.BluetoothDevice;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -28,6 +32,7 @@ import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.bluetooth.BluetoothPermissionManager;
 import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.BluetoothConnectionFragmentBinding;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,7 +49,7 @@ public class BluetoothConnectionFragment extends Fragment {
     private BluetoothConnectionManager bluetoothConnectionManager;
     private ArrayAdapter<String> deviceAdapter;
     private BluetoothPermissionManager bluetoothPermissionManager;
-    private AlertDialog reconnectionDialog;
+    private androidx.appcompat.app.AlertDialog reconnectionDialog;
     private Handler btConnectionHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(@NonNull Message msg) {
@@ -118,7 +123,7 @@ public class BluetoothConnectionFragment extends Fragment {
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                     // Get the BluetoothDevice object from the Intent
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    if (device.getName() != null) {
+                    if (device.getName() != null && device.getBondState() != BluetoothDevice.BOND_BONDED) {
                         deviceList.add(device);
                         deviceListNames.add(device.getName());
                         deviceAdapter.notifyDataSetChanged();
@@ -155,7 +160,8 @@ public class BluetoothConnectionFragment extends Fragment {
     }
 
     private void showDeviceSelectionDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getActivity());
+
         builder.setTitle("Select a Device").setAdapter(deviceAdapter, (dialog, which) -> {
                     bluetoothConnectionManager.stopScanning();
                     bluetoothConnectionManager.stopConnectionAttempt();
@@ -177,9 +183,23 @@ public class BluetoothConnectionFragment extends Fragment {
     }
 
     private void showConnectionLostDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getActivity());
+
+        LinearLayout linearLayout = new LinearLayout(requireActivity());
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setPadding(20, 20, 20, 20);
+
+        ProgressBar progressBar = new ProgressBar(new ContextThemeWrapper(requireActivity(), com.google.android.material.R.style.Widget_AppCompat_ProgressBar_Horizontal), null, 0);
+        progressBar.setIndeterminate(true);
+
+        TextView textView = new TextView(requireActivity());
+        textView.setText("The connection with the Bluetooth Device has been disrupted. A reconnection attempt is being made.");
+        textView.setGravity(View.TEXT_ALIGNMENT_CENTER);
+
+        linearLayout.addView(progressBar);
+        linearLayout.addView(textView);
         builder.setTitle("Reconnecting...")
-                .setMessage("The connection with the Bluetooth Device has been disrupted. A reconnection attempt is being made.")
+                .setView(linearLayout)
                 .setNegativeButton("Disconnect", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

@@ -1,6 +1,10 @@
 package com.example.mdpapp.fragments.home;
 
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.method.ScrollingMovementMethod;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +25,9 @@ import com.example.mdpapp.databinding.HomeChatFragmentBinding;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class HomeChatFragment extends Fragment {
     private static final String TAG = "HomeChatFragment";
@@ -42,10 +49,19 @@ public class HomeChatFragment extends Fragment {
         MessageViewModel messageViewModel = ((MainActivity) requireActivity()).getMessageViewModel();
 
         messageViewModel.getMessageType().observe(getViewLifecycleOwner(), messageHeader -> {
-            binding.txtReceivedHeader.setText(messageHeader.toString());
-            binding.txtReceivedMsg.setText(messageViewModel.getMessageContent().getValue());
+            String dateTimePattern = "hh:mm:ss dd/MM/yy";
+            SimpleDateFormat dateFormat = new SimpleDateFormat(dateTimePattern);
+            String dateTime = dateFormat.format(new Date());
+
+            String message = messageViewModel.getMessageContent().getValue();
+            String header = messageHeader.toString();
+            SpannableString formattedMsg = new SpannableString(header+" | "+dateTime+"\n"+message+"\n\n");
+            formattedMsg.setSpan(new RelativeSizeSpan(0.6f), 0, header.length()+dateTimePattern.length()+3, 0);
+
+            binding.txtReceivedMsg.append(formattedMsg);
         });
 
+        binding.txtReceivedMsg.setMovementMethod(new ScrollingMovementMethod());
         binding.btnSendMsg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
