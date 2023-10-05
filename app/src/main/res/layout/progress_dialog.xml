@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    style="@style/MaterialAlertDialog.Material3.Title.Panel">
+
+    <TextView
+        android:id="@+id/progressTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/MaterialAlertDialog.Material3.Title.Text" />
+
+    <!-- Progress bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_height="wrap_content"
+        android:indeterminate="true" />
+
+    <!-- Other views can be added here if needed -->
+
+</LinearLayout>

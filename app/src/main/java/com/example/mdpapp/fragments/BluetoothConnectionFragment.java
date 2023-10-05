@@ -53,6 +53,7 @@ public class BluetoothConnectionFragment extends Fragment {
     private BluetoothPermissionManager bluetoothPermissionManager;
     private androidx.appcompat.app.AlertDialog reconnectionDialog;
     private AlertDialog deviceSelectionDialog;
+    private View progressBarLayout;
     private Handler btConnectionHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(@NonNull Message msg) {
@@ -141,10 +142,15 @@ public class BluetoothConnectionFragment extends Fragment {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
 
-                if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                     Log.d("Discovery", "Finished");
                     Button alertBtnScan = deviceSelectionDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     alertBtnScan.setEnabled(true);
+
+                    if (progressBarLayout != null) {
+                        ProgressBar progressBar = progressBarLayout.findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.GONE);
+                    }
                 }
             }
         };
@@ -152,7 +158,7 @@ public class BluetoothConnectionFragment extends Fragment {
         binding.btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startScanning();
+                getBTDevices();
 
                 IntentFilter foundFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
                 requireActivity().registerReceiver(foundReceiver, foundFilter);
@@ -166,9 +172,16 @@ public class BluetoothConnectionFragment extends Fragment {
     }
 
     private void showDeviceSelectionDialog() {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getActivity());
+        progressBarLayout = getLayoutInflater().inflate(R.layout.progress_dialog, null);
+        TextView title = progressBarLayout.findViewById(R.id.progressTitle);
+        title.setText("Select a Device");
 
-        builder.setTitle("Select a Device").setAdapter(deviceAdapter, (dialog, which) -> {
+        ProgressBar progressBar = progressBarLayout.findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getActivity());
+        builder.setCustomTitle(progressBarLayout)
+                .setAdapter(deviceAdapter, (dialog, which) -> {
                     bluetoothConnectionManager.stopScanning();
                     bluetoothConnectionManager.stopConnectionAttempt();
                     BluetoothDevice selectedDevice = deviceList.get(which);
@@ -193,7 +206,9 @@ public class BluetoothConnectionFragment extends Fragment {
                 btnScan.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                       startScanning();
+                        getBTDevices();
+                        ProgressBar progressBar = progressBarLayout.findViewById(R.id.progressBar);
+                        progressBar.setVisibility(View.VISIBLE);
                     }
                 });
 
@@ -204,23 +219,14 @@ public class BluetoothConnectionFragment extends Fragment {
     }
 
     private void showConnectionLostDialog() {
+        View progressBarLayout = getLayoutInflater().inflate(R.layout.progress_dialog, null);
+
+        TextView title = progressBarLayout.findViewById(R.id.progressTitle);
+        title.setText("Reconnecting...");
+
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getActivity());
-
-        LinearLayout linearLayout = new LinearLayout(requireActivity());
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
-        linearLayout.setPadding(20, 20, 20, 20);
-
-        ProgressBar progressBar = new ProgressBar(new ContextThemeWrapper(requireActivity(), com.google.android.material.R.style.Widget_AppCompat_ProgressBar_Horizontal), null, 0);
-        progressBar.setIndeterminate(true);
-
-        TextView textView = new TextView(requireActivity());
-        textView.setText("The connection with the Bluetooth Device has been disrupted. A reconnection attempt is being made.");
-        textView.setGravity(View.TEXT_ALIGNMENT_CENTER);
-
-        linearLayout.addView(progressBar);
-        linearLayout.addView(textView);
-        builder.setTitle("Reconnecting...")
-                .setView(linearLayout)
+        builder.setCustomTitle(progressBarLayout)
+                .setMessage("The connection with the Bluetooth Device has been disrupted. A reconnection attempt is being made.")
                 .setNegativeButton("Disconnect", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -239,12 +245,12 @@ public class BluetoothConnectionFragment extends Fragment {
     }
 
     private void dismissReconnectionDialog() {
-        if(reconnectionDialog != null && reconnectionDialog.isShowing()) {
+        if (reconnectionDialog != null && reconnectionDialog.isShowing()) {
             reconnectionDialog.dismiss();
         }
     }
 
-    private void startScanning() {
+    private void getBTDevices() {
         deviceList.clear();
         deviceListNames.clear();
         deviceAdapter.notifyDataSetChanged();
