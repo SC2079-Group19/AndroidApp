@@ -82,7 +82,15 @@ public class BluetoothConnectionManager {
         mConnectThread = new Thread(() -> {
             try {
                 mSocket = device.createRfcommSocketToServiceRecord(RANDOM_UUID);
+                if(Thread.interrupted()) {
+                    return;
+                }
+
                 mSocket.connect();
+
+                if(Thread.interrupted()) {
+                    return;
+                }
 
                 mConnectedThread = new ConnectedThread(mSocket);
                 mConnectedThread.start();
@@ -92,6 +100,9 @@ public class BluetoothConnectionManager {
                 mConnectionCallback.obtainMessage(CONNECTION_SUCCESSFUL).sendToTarget();
 
             } catch (IOException e) {
+                if (Thread.interrupted()) {
+                    return;
+                }
                 Log.e(TAG, e.getMessage());
                 mConnectionCallback.obtainMessage(CONNECTION_FAILED).sendToTarget();
             }
