@@ -31,6 +31,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -178,9 +179,7 @@ public class HomeMainFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     TextView obstacle = (TextView) v;
-                                    obstacle.setText(String.valueOf(obstacle.getId()));
-                                    obstacle.setBackgroundColor(Color.BLACK);
-                                    obstacle.setTag(R.id.obstacleD, 8);
+                                    resetObstacle(obstacle);
                                 }
                             })
                             .setNegativeButton("Cancel", null)
@@ -399,7 +398,7 @@ public class HomeMainFragment extends Fragment {
                         } else {
                             TextView obstacle = (TextView) item;
                             obstaclesOnGrid.remove(obstacle.getId());
-                            obstacle.setText(String.valueOf(obstacle.getId()));
+                            resetObstacle(obstacle);
                             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(obstacle.getLayoutParams());
                             params.height = 80;
                             params.width = 80;
@@ -749,5 +748,11 @@ public class HomeMainFragment extends Fragment {
                 isObstacleCollision(gridX + 1, gridY + 1) ||
                 isObstacleCollision(gridX - 1, gridY + 1) ||
                 isObstacleCollision(gridX + 1, gridY - 1);
+    }
+
+    private void resetObstacle(TextView obstacle) {
+        obstacle.setText(String.valueOf(obstacle.getId()));
+        obstacle.setBackgroundColor(Color.BLACK);
+        obstacle.setTag(R.id.obstacleD, 8);
     }
 }
