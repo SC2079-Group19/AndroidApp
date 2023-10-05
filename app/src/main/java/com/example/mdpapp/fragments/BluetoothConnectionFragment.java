@@ -143,7 +143,6 @@ public class BluetoothConnectionFragment extends Fragment {
                 String action = intent.getAction();
 
                 if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                    Log.d("Discovery", "Finished");
                     Button alertBtnScan = deviceSelectionDialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     alertBtnScan.setEnabled(true);
 

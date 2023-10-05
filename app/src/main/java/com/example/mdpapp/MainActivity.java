@@ -21,6 +21,7 @@ import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.bluetooth.BluetoothPermissionManager;
 import com.example.mdpapp.databinding.ActivityMainBinding;
 import com.example.mdpapp.view_models.MessageViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import android.provider.Settings;
 import android.view.View;
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void showPermissionsNotGrantedDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         builder.setTitle("Permissions Not Granted")
                 .setMessage("Please go to the settings to grant the necessary permissions. The app will not function properly otherwise.")
                 .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
