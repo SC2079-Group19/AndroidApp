@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.bluetooth.BluetoothDevice;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -215,6 +216,13 @@ public class BluetoothConnectionFragment extends Fragment {
             }
         });
         deviceSelectionDialog.show();
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+
+        lp.copyFrom(deviceSelectionDialog.getWindow().getAttributes());
+        lp.height = 1000;
+        deviceSelectionDialog.getWindow().setAttributes(lp);
+
     }
 
     private void showConnectionLostDialog() {

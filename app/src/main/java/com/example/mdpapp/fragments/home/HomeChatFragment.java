@@ -1,5 +1,6 @@
 package com.example.mdpapp.fragments.home;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Layout;
 import android.text.Spannable;
@@ -7,6 +8,7 @@ import android.text.SpannableString;
 import android.text.method.ScrollingMovementMethod;
 import android.text.style.AlignmentSpan;
 import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
@@ -53,9 +55,9 @@ public class HomeChatFragment extends Fragment {
 
         MessageViewModel messageViewModel = ((MainActivity) requireActivity()).getMessageViewModel();
 
-        messageViewModel.getMessageType().observe(getViewLifecycleOwner(), messageHeader -> {
-            String message = messageViewModel.getMessageContent().getValue();
-            String header = messageHeader.toString();
+        messageViewModel.getMessageContent().observe(getViewLifecycleOwner(), messageContent -> {
+            String message = messageContent.toString();
+            JSONMessagesManager.MessageHeader header = messageViewModel.getMessageType().getValue();
 
             binding.txtReceivedMsg.append(getFormattedMessage(message, header, false));
         });
@@ -71,19 +73,20 @@ public class HomeChatFragment extends Fragment {
                 } else {
                     RadioButton selectedBtn = requireActivity().findViewById(binding.radioBtnGrpMsgHeader.getCheckedRadioButtonId());
                     String msgHeader = selectedBtn.getText().toString();
-                    JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.valueOf(msgHeader), msg);
+                    JSONMessagesManager.MessageHeader msgHeaderEnum = JSONMessagesManager.MessageHeader.valueOf(msgHeader);
+                    JSONObject message = JSONMessagesManager.createJSONMessage(msgHeaderEnum, msg);
                     try {
                         bluetoothConnectionManager.sendMessage(message.toString());
                     } catch (IOException e) {
                         Log.e(TAG, e.getMessage());
                     }
-                    binding.txtReceivedMsg.append(getFormattedMessage(msg, msgHeader, true));
+                    binding.txtReceivedMsg.append(getFormattedMessage(msg, msgHeaderEnum, true));
                 }
             }
         });
     }
 
-    private SpannableString getFormattedMessage(String msg, String msgHeader, boolean sent) {
+    private SpannableString getFormattedMessage(String msg, JSONMessagesManager.MessageHeader msgHeader, boolean sent) {
         String dateTimePattern = "hh:mm:ss dd/MM/yy";
         SimpleDateFormat dateFormat = new SimpleDateFormat(dateTimePattern);
 
@@ -92,10 +95,25 @@ public class HomeChatFragment extends Fragment {
         String fullString = msgHeader+delimiter+dateTime+"\n"+msg+"\n\n";
 
         SpannableString formattedMsg = new SpannableString(fullString);
-        formattedMsg.setSpan(new RelativeSizeSpan(0.6f), 0, msgHeader.length()+dateTimePattern.length()+delimiter.length(), 0);
+        formattedMsg.setSpan(new RelativeSizeSpan(0.6f), 0, msgHeader.toString().length()+dateTimePattern.length()+delimiter.length(), 0);
 
         if (sent) {
             formattedMsg.setSpan(new AlignmentSpan.Standard(Layout.Alignment.ALIGN_OPPOSITE), 0, fullString.length(), 0);
+        }
+
+        switch (msgHeader) {
+            case ROBOT_STATUS:
+                formattedMsg.setSpan(new ForegroundColorSpan(Color.BLUE), 0, fullString.length(), 0);
+                break;
+            case ROBOT_CONTROL:
+                formattedMsg.setSpan(new ForegroundColorSpan(Color.RED), 0, fullString.length(), 0);
+                break;
+            case ROBOT_LOCATION:
+                formattedMsg.setSpan(new ForegroundColorSpan(Color.YELLOW), 0, fullString.length(), 0);
+                break;
+            case IMAGE_RESULT:
+                formattedMsg.setSpan(new ForegroundColorSpan(Color.GREEN), 0, fullString.length(), 0);
+                break;
         }
 
         return formattedMsg;
