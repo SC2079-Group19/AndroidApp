@@ -12,10 +12,13 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -63,29 +66,45 @@ public class HomeChatFragment extends Fragment {
         });
 
         binding.txtReceivedMsg.setMovementMethod(new ScrollingMovementMethod());
+
         binding.btnSendMsg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String msg = binding.editTextSend.getText().toString();
-                binding.editTextSend.setText("");
-                if (binding.radioBtnGrpMsgHeader.getCheckedRadioButtonId() == -1) {
-                    Toast.makeText(requireActivity(), "Please select message type", Toast.LENGTH_LONG).show();
-                } else {
-                    RadioButton selectedBtn = requireActivity().findViewById(binding.radioBtnGrpMsgHeader.getCheckedRadioButtonId());
-                    String msgHeader = selectedBtn.getText().toString();
-                    JSONMessagesManager.MessageHeader msgHeaderEnum = JSONMessagesManager.MessageHeader.valueOf(msgHeader);
-                    JSONObject message = JSONMessagesManager.createJSONMessage(msgHeaderEnum, msg);
-                    try {
-                        bluetoothConnectionManager.sendMessage(message.toString());
-                    } catch (IOException e) {
-                        Log.e(TAG, e.getMessage());
-                    }
-                    binding.txtReceivedMsg.append(getFormattedMessage(msg, msgHeaderEnum, true));
+                sendMessage();
+            }
+        });
+
+        binding.editTextSend.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    sendMessage();
+                    handled = true;
                 }
+                return handled;
             }
         });
     }
 
+    private void sendMessage() {
+        String msg = binding.editTextSend.getText().toString();
+        binding.editTextSend.setText("");
+        if (binding.radioBtnGrpMsgHeader.getCheckedRadioButtonId() == -1) {
+            Toast.makeText(requireActivity(), "Please select message type", Toast.LENGTH_LONG).show();
+        } else {
+            RadioButton selectedBtn = requireActivity().findViewById(binding.radioBtnGrpMsgHeader.getCheckedRadioButtonId());
+            String msgHeader = selectedBtn.getText().toString();
+            JSONMessagesManager.MessageHeader msgHeaderEnum = JSONMessagesManager.MessageHeader.valueOf(msgHeader);
+            JSONObject message = JSONMessagesManager.createJSONMessage(msgHeaderEnum, msg);
+            try {
+                bluetoothConnectionManager.sendMessage(message.toString());
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+            }
+            binding.txtReceivedMsg.append(getFormattedMessage(msg, msgHeaderEnum, true));
+        }
+    }
     private SpannableString getFormattedMessage(String msg, JSONMessagesManager.MessageHeader msgHeader, boolean sent) {
         String dateTimePattern = "hh:mm:ss dd/MM/yy";
         SimpleDateFormat dateFormat = new SimpleDateFormat(dateTimePattern);

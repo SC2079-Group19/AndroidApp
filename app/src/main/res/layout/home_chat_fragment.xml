@@ -73,7 +73,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="145dp"
                 android:hint="Send a message"
-                android:inputType="text" />
+                android:imeOptions="actionSend"
+                android:inputType="textCapCharacters" />
 
             <Button
                 android:id="@+id/btnSendMsg"

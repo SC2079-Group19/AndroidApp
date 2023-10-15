@@ -10,6 +10,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -50,7 +52,7 @@ public class HomeMainFragment extends Fragment {
     private int gridSize;
     private boolean timerRunning;
     private Handler timerHandler = new Handler();
-    private long startTimeMilli;
+    private long startTimeMilli = 0;
 
     @Nullable
     @Override
@@ -603,10 +605,18 @@ public class HomeMainFragment extends Fragment {
                 if (timerRunning) {
                     timerRunning = false;
                     binding.btnStartTimer.setText("Start Timer");
+                    Animation anim = new AlphaAnimation(0.7f, 1.0f);
+                    anim.setDuration(700); //You can manage the blinking time with this parameter
+                    anim.setRepeatMode(Animation.REVERSE);
+                    anim.setRepeatCount(Animation.INFINITE);
+                    binding.txtTimer.startAnimation(anim);
                 } else {
                     timerRunning = true;
                     binding.btnStartTimer.setText("Stop Timer");
-                    startTimeMilli = System.currentTimeMillis();
+                    if (startTimeMilli == 0) {
+                        startTimeMilli = System.currentTimeMillis();
+                    }
+                    binding.txtTimer.clearAnimation();
                     runTimer();
                 }
             }
@@ -618,6 +628,7 @@ public class HomeMainFragment extends Fragment {
                 timerRunning = false;
                 binding.btnStartTimer.setText("Start Timer");
                 startTimeMilli = 0;
+                binding.txtTimer.clearAnimation();
                 updateTimer(0);
             }
         });
@@ -642,7 +653,7 @@ public class HomeMainFragment extends Fragment {
         long seconds = (elapsedTime / 1000) % 60;
         long milliseconds = (elapsedTime % 1000);
 
-        binding.txtTimer.setText(String.format("%02d:%02d:%02d", minutes, seconds, milliseconds));
+        binding.txtTimer.setText(String.format("%02d:%02d:%03d", minutes, seconds, milliseconds));
     }
 
     // Define the moveRobot method to update the robot's position
