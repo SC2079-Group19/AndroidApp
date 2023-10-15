@@ -1,9 +1,9 @@
 package com.example.mdpapp.fragments.home;
 
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -26,18 +26,17 @@ import com.example.mdpapp.R;
 import com.example.mdpapp.utils.bluetooth.BluetoothConnectionManager;
 import com.example.mdpapp.utils.JSONMessagesManager;
 import com.example.mdpapp.databinding.HomeMainFragmentBinding;
+import com.example.mdpapp.utils.constants.Direction;
 import com.example.mdpapp.view_models.MessageViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class HomeMainFragment extends Fragment {
     private static final String TAG = "HomeMainFragment";
@@ -49,6 +48,9 @@ public class HomeMainFragment extends Fragment {
     private int cellSize;
     private int cellSpacing;
     private int gridSize;
+    private boolean timerRunning;
+    private Handler timerHandler = new Handler();
+    private long startTimeMilli;
 
     @Nullable
     @Override
@@ -64,15 +66,10 @@ public class HomeMainFragment extends Fragment {
 
         GridLayout gridLayout = binding.grid;
 
-        // Obtain the colorSurface attribute from the current theme
-        TypedValue typedValue = new TypedValue();
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true);
-
-        int cellColor = typedValue.data;
-
         gridSize = 20;
         cellSpacing = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics());
         cellSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
+        int cellColor = getAttrValue(com.google.android.material.R.attr.colorPrimary);
 
         // Populate the grid
         for (int row = 0; row < gridSize + 1; row++) { // +1 to include the indicators
@@ -109,12 +106,8 @@ public class HomeMainFragment extends Fragment {
         for (int i = 0; i < MAX_NO_OBSTACLES; i++) {
             TextView newObstacle = new TextView(requireActivity());
 
-            newObstacle.setText(String.valueOf(i + 1));
             newObstacle.setId(i + 1);
-            newObstacle.setBackgroundColor(Color.BLACK);
-            newObstacle.setTextColor(Color.WHITE);
-            newObstacle.setGravity(Gravity.CENTER);
-            newObstacle.setTextSize(10);
+            resetObstacle(newObstacle);
 
             FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.topMargin = 0;
@@ -137,7 +130,7 @@ public class HomeMainFragment extends Fragment {
             newObstacle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String[] options = new String[]{"Top", "Bottom", "Left", "Right"};
+                    String[] options = new String[]{"North", "South", "East", "West"};
 
                     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireActivity());
                     builder.setTitle("Select Image Location")
@@ -145,29 +138,23 @@ public class HomeMainFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     String selection = options[which];
-                                    JSONObject message = null;
-                                    String obstacle_id = ((TextView) v).getText().toString();
-
-                                    int gridX = (int) (v.getX() / (cellSize + cellSpacing));
-                                    int gridY = (int) (v.getY() / (cellSize + cellSpacing));
-
-                                    int direction = 8;
+                                    int direction = Direction.UNSET;
 
                                     switch (selection) {
-                                        case "Top":
+                                        case "North":
                                             v.setBackgroundResource(R.drawable.obstacle_border_top);
-                                            direction = 0;
+                                            direction = Direction.NORTH;
                                             break;
-                                        case "Bottom":
-                                            direction = 4;
+                                        case "South":
+                                            direction = Direction.SOUTH;
                                             v.setBackgroundResource(R.drawable.obstacle_border_bottom);
                                             break;
-                                        case "Left":
-                                            direction = 6;
+                                        case "West":
+                                            direction = Direction.WEST;
                                             v.setBackgroundResource(R.drawable.obstacle_border_left);
                                             break;
-                                        case "Right":
-                                            direction = 2;
+                                        case "East":
+                                            direction = Direction.EAST;
                                             v.setBackgroundResource(R.drawable.obstacle_border_right);
                                             break;
                                     }
@@ -215,17 +202,9 @@ public class HomeMainFragment extends Fragment {
             }
         });
 
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorSecondary, typedValue, true);
-        int axisHighlightBgColor = typedValue.data;
-
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSecondary, typedValue, true);
-        int axisHighlightFgColor = typedValue.data;
-
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
-        int axisNormalFgColor = typedValue.data;
-
-        requireActivity().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnPrimary, typedValue, true);
-        int robotUnderneathColor = typedValue.data;
+        int axisHighlightBgColor = getAttrValue(com.google.android.material.R.attr.colorSecondary);
+        int axisHighlightFgColor = getAttrValue(com.google.android.material.R.attr.colorOnSecondary);
+        int axisNormalFgColor = getAttrValue(com.google.android.material.R.attr.colorOnSurface);
 
         binding.frame.setOnDragListener(new View.OnDragListener() {
             private TextView highlightedAxisX = null;
@@ -258,80 +237,40 @@ public class HomeMainFragment extends Fragment {
                         x = event.getX();
                         y = event.getY();
 
-                        gridX = (int) (x / (cellSize + cellSpacing));
-                        gridY = (int) (y / (cellSize + cellSpacing));
+                        int xPos = getCoordinateX(x);
+                        int yPos = getCoordinateY(y);
 
-                        if (gridY <= 0 || gridY >= gridSize + 1 || gridX <= 0 || gridX > gridSize + 1) {
-                            return false;
-                        }
+                        View obj = (View) event.getLocalState();
 
-                        TextView cell = (TextView) gridLayout.getChildAt((gridY - 1) * (gridSize + 1) + (gridX - 1));
-                        if (cell == null) {
-                            return false;
-                        }
-
-                        // Calculate the center position of the grid cell
-                        int left = (int) cell.getX();
-                        int top = (int) cell.getY();
-
-                        View item = (View) event.getLocalState();
 
                         // Check for collision with existing obstacles
-                        Log.d("Checking", "X: " + gridX);
-                        Log.d("Checking", "Y: " + gridY);
-                        if (isObstacleOnRobot((gridX - 1), (gridSize + 1) - gridY)) {
+                        if (isObstacleOnRobot(xPos, yPos)) {
                             return false;
                         }
-                        if (item.getId() != binding.robot.getId() && isObstacleCollision((gridX - 1), ((gridSize + 1) - gridY))) {
+                        if (obj.getId() != binding.robot.getId() && isObstacleCollision(xPos, yPos)) {
                             return false; // Reject the drop if there's a collision
                         }
 
-                        if (item.getId() == binding.robot.getId()) {
-                            if (isRobotCollision((gridX - 1), (gridSize + 1) - gridY)) {
+                        if (obj.getId() == binding.robot.getId()) {
+//                            if (collides(xPos, yPos, true)) {
+//                                return false;
+//                            }
+                            if (isRobotCollision(xPos, yPos)) {
                                 return false;
                             }
-                            if (gridY <= 1 || gridY >= gridSize || gridX <= 2 || gridX > gridSize) {
-                                return false;
-                            }
-                            ImageView robot = (ImageView) item;
-                            FrameLayout.LayoutParams params = null;
-                            if (((View) robot.getParent()).getId() == binding.llObstacleCar.getId()) {
-                                params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                                binding.llObstacleCar.removeView(robot);
-                                binding.frame.addView(robot);
-                            } else {
-                                params = (FrameLayout.LayoutParams) robot.getLayoutParams();
-                            }
-                            params.leftMargin = left - (cellSize + cellSpacing);
-                            params.topMargin = top - (cellSize + cellSpacing);
-                            params.width = cellSize * 3;
-                            params.height = cellSize * 3;
-                            robot.setLayoutParams(params);
-                            robot.setBackgroundColor(robotUnderneathColor);
+                            placeRobotOnGrid(binding.robot, xPos, yPos);
 
+                            binding.robot.setTag(R.id.obstacleX, xPos);
+                            binding.robot.setTag(R.id.obstacleY, yPos);
                         } else {
-                            TextView obstacle = (TextView) item;
+//                            if (collides(xPos, yPos, false)) {
+//                                return false;
+//                            }
+                            TextView obstacle = (TextView) obj;
+                            placeObstacleOnGrid(obstacle, xPos, yPos);
 
-                            // Check if the view is not already added to the FrameLayout
-                            if (((View) obstacle.getParent()).getId() == binding.obstacleStack.getId()) {
-                                // Add the view to the FrameLayout
-                                binding.obstacleStack.removeView(obstacle);
-                                binding.frame.addView(obstacle);
-                            }
-                            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) obstacle.getLayoutParams();
-                            layoutParams.leftMargin = left;
-                            layoutParams.topMargin = top;
-                            layoutParams.width = cellSize;
-                            layoutParams.height = cellSize;
-                            obstacle.setLayoutParams(layoutParams);
-
-                            obstacle.setTag(R.id.obstacleX, gridX - 1);
-                            obstacle.setTag(R.id.obstacleY, (gridSize + 1) - gridY);
-
-                            // Direction has not been set, so set a default direction of None
-                            if (obstacle.getTag(R.id.obstacleD) == null) {
-                                obstacle.setTag(R.id.obstacleD, 8);
-                            }
+                            obstacle.setTag(R.id.obstacleX, xPos);
+                            obstacle.setTag(R.id.obstacleY, yPos);
 
                             obstaclesOnGrid.put(obstacle.getId(), obstacle);
                         }
@@ -436,7 +375,7 @@ public class HomeMainFragment extends Fragment {
                         TextView obstacle = binding.frame.findViewById(obstacleId);
                         if (obstacle != null && targetId >= 10 && targetId <= 40) {
                             obstacle.setText(String.valueOf(targetId));
-                            obstacle.setBackgroundColor(Color.BLACK);
+                            obstacle.setBackgroundColor(Color.DKGRAY);
                             obstacle.setTextSize(16);
                         }
                     } catch (JSONException e) {
@@ -451,43 +390,26 @@ public class HomeMainFragment extends Fragment {
 
                     try {
                         JSONObject robotLocation = new JSONObject(messageViewModel.getMessageContent().getValue());
-                        int gridX = (int) robotLocation.get("x");
-                        int gridY = (int) robotLocation.get("y");
+                        int gridX = ((int) robotLocation.get("x")) + 1;
+                        int gridY = ((int) robotLocation.get("y")) + 1;
                         int orientation = (int) robotLocation.get("d");
 
                         if (isRobotCollision(gridX, gridY)) {
                             break;
                         }
 
-                        if (gridY <= 1 || gridY > gridSize - 1 || gridX <= 1 || gridX > gridSize - 1) {
-                            break;
-                        }
-
-                        gridX--;
-                        gridY--;
-
-                        gridY = gridSize - gridY;
-
-                        TextView cell = (TextView) gridLayout.getChildAt((gridY - 1) * (gridSize + 1) + (gridX + 1));
-                        if (cell == null) {
-                            break;
-                        }
-
-                        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) binding.robot.getLayoutParams();
-                        layoutParams.leftMargin = ((int) cell.getX()) - (cellSize + cellSpacing);
-                        layoutParams.topMargin = ((int) cell.getY()) - (cellSize + cellSpacing);
-                        binding.robot.setLayoutParams(layoutParams);
+                        placeRobotOnGrid(binding.robot, gridX, gridY);
                         switch (orientation) {
-                            case 0:
+                            case Direction.NORTH:
                                 binding.robot.setRotation(0);
                                 break;
-                            case 2:
+                            case Direction.EAST:
                                 binding.robot.setRotation(90);
                                 break;
-                            case 4:
+                            case Direction.SOUTH:
                                 binding.robot.setRotation(180);
                                 break;
-                            case 6:
+                            case Direction.WEST:
                                 binding.robot.setRotation(270);
                                 break;
                         }
@@ -644,8 +566,8 @@ public class HomeMainFragment extends Fragment {
                     String messageData = String.format(
                             "{'id': %s, 'x': %d, 'y': %d, 'd': %d}",
                             obstacle.getId(),
-                            obstacle.getTag(R.id.obstacleX),
-                            obstacle.getTag(R.id.obstacleY),
+                            ((int) obstacle.getTag(R.id.obstacleX)) - 1,
+                            ((int) obstacle.getTag(R.id.obstacleY)) - 1,
                             obstacle.getTag(R.id.obstacleD));
                     obstacleObjects.add(messageData.toString());
                 }
@@ -664,32 +586,8 @@ public class HomeMainFragment extends Fragment {
         binding.btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int gridX = 3;
-                int gridY = 19;
-                TextView cell = (TextView) gridLayout.getChildAt((gridY - 1) * (gridSize + 1) + (gridX - 1));
-
-                if (cell == null) {
-                    return;
-                }
-
-                // Calculate the center position of the grid cell
-                int left = (int) cell.getX();
-                int top = (int) cell.getY();
-
-                FrameLayout.LayoutParams params = null;
-                if (((View) binding.robot.getParent()).getId() == binding.llObstacleCar.getId()) {
-                    params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-                    binding.llObstacleCar.removeView(binding.robot);
-                    binding.frame.addView(binding.robot);
-                } else {
-                    params = (FrameLayout.LayoutParams) binding.robot.getLayoutParams();
-                }
-                params.leftMargin = left - (cellSize + cellSpacing);
-                params.topMargin = top - (cellSize + cellSpacing);
-                params.width = cellSize * 3;
-                params.height = cellSize * 3;
-                binding.robot.setLayoutParams(params);
-                binding.robot.setBackgroundColor(robotUnderneathColor);
+                placeRobotOnGrid(binding.robot, 2, 2);
+                binding.robot.setRotation(0);
                 JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.START_MOVEMENT, "1");
                 try {
                     bluetoothConnectionManager.sendMessage(message.toString());
@@ -698,6 +596,53 @@ public class HomeMainFragment extends Fragment {
                 }
             }
         });
+
+        binding.btnStartTimer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (timerRunning) {
+                    timerRunning = false;
+                    binding.btnStartTimer.setText("Start Timer");
+                } else {
+                    timerRunning = true;
+                    binding.btnStartTimer.setText("Stop Timer");
+                    startTimeMilli = System.currentTimeMillis();
+                    runTimer();
+                }
+            }
+        });
+
+        binding.btnReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timerRunning = false;
+                binding.btnStartTimer.setText("Start Timer");
+                startTimeMilli = 0;
+                updateTimer(0);
+            }
+        });
+    }
+
+    private void runTimer() {
+        timerHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (timerRunning) {
+                    long elapsedTime = System.currentTimeMillis() - startTimeMilli;
+                    updateTimer(elapsedTime);
+                }
+
+                timerHandler.postDelayed(this, 1);
+            }
+        });
+    }
+
+    private void updateTimer(long elapsedTime) {
+        long minutes = (elapsedTime / 1000 / 60) % 60;
+        long seconds = (elapsedTime / 1000) % 60;
+        long milliseconds = (elapsedTime % 1000);
+
+        binding.txtTimer.setText(String.format("%02d:%02d:%02d", minutes, seconds, milliseconds));
     }
 
     // Define the moveRobot method to update the robot's position
@@ -740,7 +685,6 @@ public class HomeMainFragment extends Fragment {
     }
 
     private boolean isObstacleOnRobot(int gridX, int gridY) {
-        Log.d("Checking", "Im here");
         if (((View) binding.robot.getParent()).getId() != binding.frame.getId()) {
             return false;
         }
@@ -750,12 +694,6 @@ public class HomeMainFragment extends Fragment {
         int robotY = (layoutParams.topMargin / (cellSize + cellSpacing));
         robotX++;
         robotY = (gridSize - 1) - robotY;
-
-        Log.d("Checking", "gridX: " + gridX);
-        Log.d("Checking", "gridY " + gridY);
-
-        Log.d("Checking", "robotX: " + robotX);
-        Log.d("Checking", "robotY: " + robotY);
 
         if (robotX - 1 <= gridX && robotX + 1 >= gridX && robotY - 1 <= gridY && robotY + 1 >= gridY) {
             return true;
@@ -776,10 +714,76 @@ public class HomeMainFragment extends Fragment {
                 isObstacleCollision(gridX + 1, gridY - 1);
     }
 
+    private boolean robotOnGrid() {
+        return (((View) binding.robot.getParent()).getId() == binding.frame.getId());
+    }
+
     private void resetObstacle(TextView obstacle) {
         obstacle.setText(String.valueOf(obstacle.getId()));
         obstacle.setTextSize(10);
+        obstacle.setTextColor(Color.WHITE);
         obstacle.setBackgroundColor(Color.BLACK);
+        obstacle.setGravity(Gravity.CENTER);
         obstacle.setTag(R.id.obstacleD, 8);
+    }
+
+    private int getCoordinateX(float x) {
+        int converted = (int) (x / (cellSize + cellSpacing));
+        return converted - 1;
+    }
+
+    private int getCoordinateY(float y) {
+        int converted = (int) (y / (cellSize + cellSpacing));
+        return (gridSize + 1) - converted;
+    }
+
+    private boolean placeObjectOnGrid(View object, int xPos, int yPos, int size) {
+        if (xPos < 1 || xPos > gridSize || yPos < 1 || yPos > gridSize) {
+            return false;
+        }
+
+        int xInd = xPos;
+        int yInd = (gridSize + 1) - yPos;
+        View cell = binding.grid.getChildAt((yInd - 1) * (gridSize + 1) + xInd);
+
+        if (cell == null) {
+            return false;
+        }
+
+        ViewGroup parentObj = (ViewGroup) object.getParent();
+        FrameLayout.LayoutParams layoutParams = null;
+        if (parentObj.getId() != binding.frame.getId()) {
+            layoutParams = new FrameLayout.LayoutParams((cellSize * size) + (cellSpacing * (size + 1)), (cellSize * size) + (cellSpacing * (size + 1)));
+            parentObj.removeView(object);
+            binding.frame.addView(object);
+        } else {
+            layoutParams = (FrameLayout.LayoutParams) object.getLayoutParams();
+        }
+        layoutParams.leftMargin = (int) cell.getX();
+        layoutParams.topMargin = (int) cell.getY();
+        object.setLayoutParams(layoutParams);
+
+        return true;
+    }
+
+    private boolean placeObstacleOnGrid(TextView obstacle, int xPos, int yPos) {
+        return placeObjectOnGrid(obstacle, xPos, yPos, 1);
+    }
+
+    private boolean placeRobotOnGrid(ImageView robot, int xPos, int yPos) {
+        if (xPos < 2 || xPos > 19 || yPos < 2 || yPos > 19) {
+            return false;
+        }
+
+        boolean result = placeObjectOnGrid(robot, xPos - 1, yPos + 1, 3);
+        binding.robot.setBackgroundColor(getAttrValue(com.google.android.material.R.attr.colorOnPrimary));
+
+        return result;
+    }
+
+    private int getAttrValue(int res) {
+        TypedValue typedValue = new TypedValue();
+        requireActivity().getTheme().resolveAttribute(res, typedValue, true);
+        return typedValue.data;
     }
 }

@@ -7,6 +7,36 @@
     android:paddingTop="@dimen/tab_top_padding"
     tools:context=".fragments.home.HomeMainFragment">
 
+    <Button
+        android:id="@+id/btnStartTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:text="Start Timer" />
+
+    <Button
+        android:id="@+id/btnReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reset"
+        android:layout_marginLeft="10dp"
+        app:layout_constraintLeft_toRightOf="@+id/btnStartTimer"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtTimer"
+        android:layout_width="110dp"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_corner"
+        android:padding="5dp"
+        app:layout_constraintLeft_toRightOf="@+id/btnReset"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="22sp"
+        android:hint="00:00:000" />
+
     <FrameLayout
         android:id="@+id/frame"
         android:layout_width="wrap_content"
@@ -14,7 +44,7 @@
         android:padding="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnStartTimer"
         tools:layout_editor_absoluteY="20dp">
         <GridLayout
             android:id="@+id/grid"
@@ -29,32 +59,35 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Send Obstacles"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/frame"
-        app:layout_constraintLeft_toLeftOf="parent"
-        tools:layout_editor_absoluteX="78dp"
-        tools:layout_editor_absoluteY="646dp" />
+        app:layout_constraintBottom_toTopOf="@id/btnStart"
+        app:layout_constraintLeft_toRightOf="@id/llObstacleCar"
+        tools:layout_editor_absoluteX="567dp" />
 
     <Button
         android:id="@+id/btnStart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start"
+        android:text="Start Task"
         android:layout_marginLeft="8dp"
-        app:layout_constraintStart_toEndOf="@+id/btnSendObstacles"
-        app:layout_constraintTop_toBottomOf="@+id/frame" />
+        app:layout_constraintLeft_toRightOf="@+id/llObstacleCar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <GridLayout
         android:id="@+id/llObstacleCar"
         android:layout_width="150dp"
         android:layout_height="90dp"
         android:layout_gravity="center"
-        android:layout_marginLeft="80dp"
+        android:layout_marginStart="30dp"
         android:background="?colorPrimaryContainer"
         android:orientation="horizontal"
         android:padding="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/dpad">
+        app:layout_constraintBottom_toBottomOf="@+id/dpad"
+        app:layout_constraintStart_toEndOf="@+id/dpad"
+        app:layout_constraintTop_toTopOf="@+id/dpad"
+        app:layout_constraintVertical_bias="0.49">
 
         <FrameLayout android:id="@+id/obstacleStack" />
 
@@ -67,13 +100,12 @@
 
     </GridLayout>
 
-
     <com.codertainment.dpadview.DPadView
         android:id="@+id/dpad"
         android:layout_width="145dp"
         android:layout_height="147dp"
         android:src="@drawable/ic_gamepad_black"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
