@@ -3,5 +3,8 @@
     <style name="Base.Theme.MDPApp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorSurface">#121212</item>
+        <item name="android:colorBackground">#121212</item>
+        <item name="colorOnSurface">#FFFFFF</item>
     </style>
 </resources>

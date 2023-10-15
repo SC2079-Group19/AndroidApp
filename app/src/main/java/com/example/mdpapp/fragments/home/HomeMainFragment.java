@@ -610,6 +610,7 @@ public class HomeMainFragment extends Fragment {
                     anim.setRepeatMode(Animation.REVERSE);
                     anim.setRepeatCount(Animation.INFINITE);
                     binding.txtTimer.startAnimation(anim);
+                    binding.btnStartTimer.setBackgroundColor(getAttrValue(androidx.appcompat.R.attr.colorPrimary));
                 } else {
                     timerRunning = true;
                     binding.btnStartTimer.setText("Stop Timer");
@@ -617,6 +618,7 @@ public class HomeMainFragment extends Fragment {
                         startTimeMilli = System.currentTimeMillis();
                     }
                     binding.txtTimer.clearAnimation();
+                    binding.btnStartTimer.setBackgroundColor(getAttrValue(com.google.android.material.R.attr.colorSecondary));
                     runTimer();
                 }
             }
@@ -627,6 +629,7 @@ public class HomeMainFragment extends Fragment {
             public void onClick(View v) {
                 timerRunning = false;
                 binding.btnStartTimer.setText("Start Timer");
+                binding.btnStartTimer.setBackgroundColor(getAttrValue(androidx.appcompat.R.attr.colorPrimary));
                 startTimeMilli = 0;
                 binding.txtTimer.clearAnimation();
                 updateTimer(0);
