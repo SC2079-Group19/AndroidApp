@@ -367,6 +367,12 @@ public class HomeMainFragment extends Fragment {
         messageViewModel.getMessageContent().observe(getViewLifecycleOwner(), messageContent -> {
             JSONMessagesManager.MessageHeader header = messageViewModel.getMessageType().getValue();
             switch (header) {
+                case ROBOT_STATUS:
+                    if (messageContent.replaceAll("^\\s+", "").replaceAll("\\s+$", "").toLowerCase() == "robot finished path queue.") {
+                        resetTimer();
+                    }
+                    break;
+
                 case IMAGE_RESULT:
                     JSONObject targetImage = null;
                     try {
@@ -590,6 +596,8 @@ public class HomeMainFragment extends Fragment {
             public void onClick(View v) {
                 placeRobotOnGrid(binding.robot, 2, 2);
                 binding.robot.setRotation(0);
+                resetTimer();
+                startTimer();
                 JSONObject message = JSONMessagesManager.createJSONMessage(JSONMessagesManager.MessageHeader.START_MOVEMENT, "1");
                 try {
                     bluetoothConnectionManager.sendMessage(message.toString());
@@ -602,41 +610,47 @@ public class HomeMainFragment extends Fragment {
         binding.btnStartTimer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (timerRunning) {
-                    timerRunning = false;
-                    binding.btnStartTimer.setText("Start Timer");
-                    Animation anim = new AlphaAnimation(0.7f, 1.0f);
-                    anim.setDuration(700); //You can manage the blinking time with this parameter
-                    anim.setRepeatMode(Animation.REVERSE);
-                    anim.setRepeatCount(Animation.INFINITE);
-                    binding.txtTimer.startAnimation(anim);
-                    binding.btnStartTimer.setBackgroundColor(getAttrValue(androidx.appcompat.R.attr.colorPrimary));
-                } else {
-                    timerRunning = true;
-                    binding.btnStartTimer.setText("Stop Timer");
-                    if (startTimeMilli == 0) {
-                        startTimeMilli = System.currentTimeMillis();
-                    }
-                    binding.txtTimer.clearAnimation();
-                    binding.btnStartTimer.setBackgroundColor(getAttrValue(com.google.android.material.R.attr.colorSecondary));
-                    runTimer();
-                }
+                startTimer();
             }
         });
 
         binding.btnReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                timerRunning = false;
-                binding.btnStartTimer.setText("Start Timer");
-                binding.btnStartTimer.setBackgroundColor(getAttrValue(androidx.appcompat.R.attr.colorPrimary));
-                startTimeMilli = 0;
-                binding.txtTimer.clearAnimation();
-                updateTimer(0);
+                resetTimer();
             }
         });
     }
 
+    private void startTimer() {
+        if (timerRunning) {
+            timerRunning = false;
+            binding.btnStartTimer.setText("Start Timer");
+            Animation anim = new AlphaAnimation(0.7f, 1.0f);
+            anim.setDuration(700); //You can manage the blinking time with this parameter
+            anim.setRepeatMode(Animation.REVERSE);
+            anim.setRepeatCount(Animation.INFINITE);
+            binding.txtTimer.startAnimation(anim);
+            binding.btnStartTimer.setBackgroundColor(getAttrValue(androidx.appcompat.R.attr.colorPrimary));
+        } else {
+            timerRunning = true;
+            binding.btnStartTimer.setText("Stop Timer");
+            if (startTimeMilli == 0) {
+                startTimeMilli = System.currentTimeMillis();
+            }
+            binding.txtTimer.clearAnimation();
+            binding.btnStartTimer.setBackgroundColor(getAttrValue(com.google.android.material.R.attr.colorSecondary));
+            runTimer();
+        }
+    }
+    private void resetTimer() {
+        timerRunning = false;
+        binding.btnStartTimer.setText("Start Timer");
+        binding.btnStartTimer.setBackgroundColor(getAttrValue(androidx.appcompat.R.attr.colorPrimary));
+        startTimeMilli = 0;
+        binding.txtTimer.clearAnimation();
+        updateTimer(0);
+    }
     private void runTimer() {
         timerHandler.post(new Runnable() {
             @Override
