@@ -31,6 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="72dp"
             android:layout_weight="1"
+            android:fontFamily="@font/poppins"
             android:background="@drawable/rounded_corner"
             android:gravity="bottom"
             android:padding="10dp"
@@ -47,18 +48,21 @@
                 android:id="@+id/radioBtnRobotLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins"
                 android:text="MISC" />
 
             <RadioButton
                 android:id="@+id/ratdioBtnItemLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins"
                 android:text="ITEM_LOCATION" />
 
             <RadioButton
                 android:id="@+id/ratdioBtnRobotControl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins"
                 android:text="ROBOT_CONTROL" />
         </RadioGroup>
 
@@ -72,6 +76,7 @@
                 android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="145dp"
+                android:fontFamily="@font/poppins"
                 android:hint="Send a message"
                 android:imeOptions="actionSend"
                 android:inputType="textCapCharacters" />
@@ -80,6 +85,7 @@
                 android:id="@+id/btnSendMsg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins"
                 android:text="Send" />
         </LinearLayout>
 

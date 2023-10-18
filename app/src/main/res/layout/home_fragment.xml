@@ -40,6 +40,7 @@
                     android:id="@+id/txtDateTimeStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins"
                     android:hint="DateTime"
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
@@ -49,6 +50,7 @@
                     android:id="@+id/txtStatus"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:fontFamily="@font/poppins"
                     android:gravity="center_horizontal"
                     android:hint="Status"
                     android:paddingLeft="5dp"
@@ -67,16 +69,33 @@
             android:tint="?colorOnSurfaceVariant"
             android:visibility="invisible" />
 
-            <Switch
-                android:id="@+id/swConnectedTo"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:checked="true"
-                android:text="Connected"
-                android:textSize="10pt"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+<!--            <Switch-->
+<!--                android:id="@+id/swConnectedTo"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:checked="true"-->
+<!--                android:text="Connected"-->
+<!--                android:textSize="10pt"-->
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent" />-->
+
+        <TextView
+            android:id="@+id/txtConnectedDevice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/power_rangers"
+            android:textSize="40sp"
+            android:layout_marginRight="10dp"
+            android:text="Check"/>
+
+        <ImageView
+            android:id="@+id/imageConnected"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@mipmap/connected_icon"
+            android:layout_gravity="center" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

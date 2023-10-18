@@ -5,6 +5,11 @@
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
         <item name="colorSurface">#121212</item>
         <item name="android:colorBackground">#121212</item>
-        <item name="colorOnSurface">#FFFFFF</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorPrimary">@color/power_orange</item>
+        <item name="colorOnPrimary">@color/power_red</item>
+        <item name="colorSecondary">@color/power_red</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/power_red</item>
     </style>
 </resources>

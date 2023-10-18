@@ -63,7 +63,7 @@ public class BluetoothConnectionFragment extends Fragment {
                     NavHostFragment.findNavController(BluetoothConnectionFragment.this).navigate(R.id.action_BluetoothConnectionFragment_to_HomeFragment);
                     break;
                 case BluetoothConnectionManager.CONNECTION_FAILED:
-                    binding.txtConnectionStatus.setText("Failed to connect. Try Again!");
+                    binding.txtConnectionStatus.setText("Calling failed!");
                     break;
                 case BluetoothConnectionManager.CONNECTION_LOST:
                     showConnectionLostDialog();
@@ -187,7 +187,7 @@ public class BluetoothConnectionFragment extends Fragment {
                     BluetoothDevice selectedDevice = deviceList.get(which);
                     Log.d("BluetoothCon", selectedDevice.getName());
                     bluetoothConnectionManager.connect(selectedDevice, btConnectionHandler);
-                    binding.txtConnectionStatus.setText("Connecting to " + selectedDevice.getName());
+                    binding.txtConnectionStatus.setText("Calling " + selectedDevice.getName());
                 })
                 .setPositiveButton("Scan", null)
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

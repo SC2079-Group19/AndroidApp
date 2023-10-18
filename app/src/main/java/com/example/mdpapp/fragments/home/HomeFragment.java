@@ -108,14 +108,28 @@ public class HomeFragment extends Fragment {
         });
 
         if (bluetoothConnectionManager.getConnectedDevice() != null) {
-            binding.swConnectedTo.setText("Device: " + bluetoothConnectionManager.getConnectedDevice().getName());
+//            binding.swConnectedTo.setText("Device: " + bluetoothConnectionManager.getConnectedDevice().getName());
+            binding.txtConnectedDevice.setText(bluetoothConnectionManager.getConnectedDevice().getName().toString());
         } else {
             return;
         }
 
-        binding.swConnectedTo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//        binding.swConnectedTo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                try {
+//                    bluetoothConnectionManager.disconnect();
+//                } catch (IOException e) {
+//                    Log.e("BluetoothSocket", e.getMessage());
+//                }
+//                NavHostFragment.findNavController(HomeFragment.this).navigate(R.id.action_HomeFragment_to_BluetoothConnectionFragment);
+//            }
+//        });
+
+
+        binding.imageConnected.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            public void onClick(View v) {
                 try {
                     bluetoothConnectionManager.disconnect();
                 } catch (IOException e) {

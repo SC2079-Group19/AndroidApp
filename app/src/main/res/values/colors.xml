@@ -4,4 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#808080</color>
     <color name="yellow">#FFFF00</color>
+    <color name="power_orange">#CC9933</color>
+    <color name="power_red">#CC3333</color>
+    <color name="power_green">#339966</color>
 </resources>

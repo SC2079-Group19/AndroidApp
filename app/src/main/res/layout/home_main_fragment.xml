@@ -11,6 +11,7 @@
         android:id="@+id/btnStartTimer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         android:text="Start Timer" />
@@ -19,6 +20,7 @@
         android:id="@+id/btnReset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins"
         android:text="Reset"
         android:layout_marginLeft="10dp"
         app:layout_constraintLeft_toRightOf="@+id/btnStartTimer"
@@ -27,8 +29,8 @@
     <TextView
         android:id="@+id/txtTimer"
         android:layout_width="110dp"
-        android:gravity="center"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:background="@drawable/rounded_corner"
         android:padding="5dp"
         app:layout_constraintLeft_toRightOf="@+id/btnReset"
@@ -56,8 +58,9 @@
 
     <Button
         android:id="@+id/btnSendObstacles"
-        android:layout_width="wrap_content"
+        android:layout_width="170dp"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins"
         android:text="Send Obstacles"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/frame"
@@ -67,8 +70,11 @@
 
     <Button
         android:id="@+id/btnStart"
-        android:layout_width="wrap_content"
+        android:layout_width="170dp"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins"
+        android:backgroundTint="@color/power_green"
+        android:textColor="@color/white"
         android:text="Start Task"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toRightOf="@+id/llObstacleCar"
@@ -84,10 +90,9 @@
         android:background="?colorPrimaryContainer"
         android:orientation="horizontal"
         android:padding="10dp"
-        app:layout_constraintBottom_toBottomOf="@+id/dpad"
-        app:layout_constraintStart_toEndOf="@+id/dpad"
-        app:layout_constraintTop_toTopOf="@+id/dpad"
-        app:layout_constraintVertical_bias="0.49">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/dpad"
+        app:layout_constraintRight_toLeftOf="@+id/btnStart">
 
         <FrameLayout android:id="@+id/obstacleStack" />
 
